@@ -1,7 +1,10 @@
 package gr.documentParser.web;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Locale;
@@ -10,9 +13,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.inject.Inject;
+import javax.swing.JEditorPane;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.EditorKit;
 
-import org.apache.poi.hwpf.HWPFDocument;
-import org.apache.poi.hwpf.usermodel.Range;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,13 +41,13 @@ public class HomeController {
 
 	@RequestMapping(value = "/parseDoc", method = RequestMethod.GET)
 	public String parseDoc(Locale locale, Model model) {
-		parseDocFile("/home/blixabargeld/Desktop/file.doc"); //TODO A Loop Here To Read More Than One Files
+		parseDocFile("/Users/asoule/Downloads/sample1.rtf"); //TODO A Loop Here To Read More Than One Files
 		return "home";
 	}
 
 	@RequestMapping(value = "/parseXls", method = RequestMethod.GET)
 	public String parseXls(Locale locale, Model model) {
-		parseXlsFile(null); //TODO Implement Method
+		parseXlsFile("/Users/asoule/Downloads/telephones1.xls"); //TODO Implement Method
 		return "home";
 	}
 
@@ -52,12 +56,39 @@ public class HomeController {
 	 * @param filePath
 	 */
 	private void parseDocFile(String filePath) {
-		try {
-			File inputFile = new File(filePath);
-			FileInputStream myInputStream = new FileInputStream(inputFile.getAbsolutePath());
-	        HWPFDocument wordDocument = new HWPFDocument(myInputStream);
-	        Range myRange = wordDocument.getRange();
-	        int numOfParagraphs = myRange.numParagraphs();
+		// read rtf from file
+	    JEditorPane pane = new JEditorPane();
+	    pane.setContentType("text/rtf");
+	    EditorKit rtfKit = pane.getEditorKitForContentType("text/rtf");
+	    try {
+			rtfKit.read(new FileReader(filePath), pane.getDocument(), 0);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (BadLocationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    rtfKit = null;
+
+	    // convert to text
+	    EditorKit txtKit = pane.getEditorKitForContentType("text/plain");
+	    Writer writer = new StringWriter();
+	    try {
+			txtKit.write(writer, pane.getDocument(), 0, pane.getDocument().getLength());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (BadLocationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    String documentText = writer.toString();
+	    
+	    String paragraphs[] = documentText.split("\n");
 	        
 	        Set<Interview> parsed = new HashSet<Interview>();
 	        Interview interview = null;
@@ -69,9 +100,10 @@ public class HomeController {
 	        /*
 	         * The Paragraphs Loop
 	         */
-	        for(int i = 0; i < numOfParagraphs; i++) {
-	        	String p = myRange.getParagraph(i).text().trim();
-	        	if(p!=null && !p.isEmpty()) { //Skip Empty Lines
+	        for(int i = 0; i < paragraphs.length; i++) {
+	        	String p = paragraphs[i].trim();
+	        	if(p!=null && !p.isEmpty() && p.trim().length()!=0) { //Skip Empty Lines
+	        		System.out.println("paragraph : "+p);
 		        	if(p.startsWith("Interview")) {
 	        			if(interview!=null) {
 	        				if(answer!=null) { //Manipulate Previous Interview's Last Question's Answer
@@ -130,10 +162,6 @@ public class HomeController {
 	         */
 	        interviewService.persistInterviews(parsed);
 		}
-		catch(Exception exception) {
-			exception.printStackTrace();
-		}
-	}
 	
 	/**
 	 * Parse A .xls File Given It's Path
