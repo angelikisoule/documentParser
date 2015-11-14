@@ -1,5 +1,7 @@
 package gr.documentParser.service.implementation;
 
+import java.util.Set;
+
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
@@ -16,7 +18,7 @@ public class InterviewServiceImplementation implements InterviewService {
 	@Inject private InterviewDao interviewDao;
 	
 	@Override
-	public void persistInterview(Interview interview) {
-		interviewDao.persist(interview);
+	public void persistInterviews(Set<Interview> interviews) {
+		interviewDao.persistInterviews(interviews);
 	}
 }
