@@ -74,6 +74,10 @@ public class HomeController {
 	        	if(p!=null && !p.isEmpty()) { //Skip Empty Lines
 		        	if(p.startsWith("Interview")) {
 	        			if(interview!=null) {
+	        				if(answer!=null) { //Manipulate Previous Interview's Last Question's Answer
+		        				answer.setAnswerText(answerText.toString());
+		        				interviewAnswers.add(answer);
+		        			}
 	        				interview.setAnswers(interviewAnswers);
 	        	        	parsed.add(interview);
 	        			}
@@ -82,8 +86,14 @@ public class HomeController {
 	        			interviewAnswers = new LinkedHashSet<Answer>();
 	        			interview.setInterviewId(extractInterviewId(p));
 	        			interview.setFilename("filename"); //TODO It Would Be Good To Keep The Filename In The Database	        		
+	        			question = null;
+	        			answer = null;
 		        	}
 	        		else if(isQuestion(p)) { //Question
+	        			if(answer!=null) { //Manipulate Previous Question's Answer
+	        				answer.setAnswerText(answerText.toString());
+	        				interviewAnswers.add(answer);
+	        			}
 	        			//Proceed With The Next Question
 	        			question = new Question();
 	        			answer = new Answer();
@@ -94,19 +104,24 @@ public class HomeController {
 	        				question = questionService.questionExists(questionCode, p);
 	        				answer.setQuestion(question);
 	        				answer.setInterview(interview);
-	        				answer.setAnswerText(answerText.toString());
-	        				interviewAnswers.add(answer);
+	        				//answer.setAnswerText(answerText.toString());
+	        				//interviewAnswers.add(answer);
 	        			}
 	        		}
 	        		else { //Answer
 	        			answerText.append(p); //An Answer May Contain More Than One Paragraph
+	        			answerText.append(" "); //A Divider For Answers With More Than One Line
 	        		}
 	        	}
 	        }
 	        /*
 	         * The Paragraphs Loop Will End Leaving A Last Not Added To The Results Interview
 	         */
-	        if(interview!=null) { 
+	        if(interview!=null) {
+	        	if(answer!=null) { //Manipulate Previous Interview's Last Question's Answer
+    				answer.setAnswerText(answerText.toString());
+    				interviewAnswers.add(answer);
+    			}
 	        	interview.setAnswers(interviewAnswers);
 	        	parsed.add(interview);
 	        }
