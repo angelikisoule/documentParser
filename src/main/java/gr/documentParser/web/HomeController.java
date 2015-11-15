@@ -1,5 +1,6 @@
 package gr.documentParser.web;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -17,6 +18,11 @@ import javax.swing.JEditorPane;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.EditorKit;
 
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,7 +47,7 @@ public class HomeController {
 
 	@RequestMapping(value = "/parseDoc", method = RequestMethod.GET)
 	public String parseDoc(Locale locale, Model model) {
-		parseDocFile("/Users/asoule/Downloads/sample1.rtf"); //TODO A Loop Here To Read More Than One Files
+		parseRtfFile("/Users/asoule/Downloads/sample1.rtf"); //TODO A Loop Here To Read More Than One Files
 		return "home";
 	}
 
@@ -52,10 +58,10 @@ public class HomeController {
 	}
 
 	/**
-	 * Parse A .doc File Given It's Path
+	 * Parse A .rtf File Given It's Path
 	 * @param filePath
 	 */
-	private void parseDocFile(String filePath) {
+	private void parseRtfFile(String filePath) {
 		// read rtf from file
 	    JEditorPane pane = new JEditorPane();
 	    pane.setContentType("text/rtf");
@@ -168,7 +174,53 @@ public class HomeController {
 	 * @param filePath
 	 */
 	private void parseXlsFile(String filePath) { //TODO Parse And Update Interview Entity's Fields
+		try {
+		    POIFSFileSystem fs = new POIFSFileSystem(new FileInputStream(filePath));
+		    HSSFWorkbook wb = new HSSFWorkbook(fs);
+		    HSSFSheet sheet = wb.getSheetAt(0);
+		    HSSFRow row;
+		    HSSFCell cell;
 
+		    int rows; // No of rows
+		    rows = sheet.getPhysicalNumberOfRows();
+
+		    int cols = 0; // No of columns
+		    int tmp = 0;
+
+		    // This trick ensures that we get the data properly even if it doesn't start from first few rows
+		    for(int i = 0; i < 10 || i < rows; i++) {
+		        row = sheet.getRow(i);
+		        if(row != null) {
+		            tmp = sheet.getRow(i).getPhysicalNumberOfCells();
+		            if(tmp > cols) cols = tmp;
+		        }
+		    }
+		    
+		    
+		    for(int r = 0; r < rows; r++) {
+		        row = sheet.getRow(r);
+		        if(row != null) {
+		            for(int c = 0; c < cols; c++) {
+		                cell = row.getCell((short)c);
+		                if(cell != null) {
+		                    // Your code here
+		                	if(r==0){
+//		                		Do nothing
+		                		System.out.print(cell.toString()+"\t");
+		                	}
+		                	else{
+//		                		Store data
+		                		Long lObl = new Long((long)Double.parseDouble(cell.toString()));
+		                		System.out.print(lObl+"\t");
+		                	}
+		                }
+		            }
+		            System.out.print("\n");
+		        }
+		    }
+		} catch(Exception ioe) {
+		    ioe.printStackTrace();
+		}
 	}
 	
 	/**

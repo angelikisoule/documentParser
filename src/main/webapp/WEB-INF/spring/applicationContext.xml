@@ -36,7 +36,7 @@
 			'update' to modify an existing database; 
 			'create-drop' means the same as 'create' but also drops tables when Hibernate closes; 
 			'validate' makes no changes to the database-->
-      	<prop key="hibernate.hbm2ddl.auto">validate</prop>
+      	<prop key="hibernate.hbm2ddl.auto">update</prop>
       	<prop key="hibernate.show_sql">false</prop>
       	<prop key="hibernate.format_sql">false</prop>
       	<prop key="hibernate.use_sql_comments">false</prop>
