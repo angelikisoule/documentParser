@@ -45,7 +45,7 @@ public class Interview {
 	private String phone2;	
 	
 	@NotNull
-	@Length(min = 1, max = 100)
+	@Length(min = 1, max = 300)
 	@Column(name = "filename")
 	private String filename;
 	

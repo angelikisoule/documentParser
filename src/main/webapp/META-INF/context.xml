@@ -5,7 +5,7 @@
 			driverClassName="com.mysql.jdbc.Driver" 
 			type="javax.sql.DataSource" 
 			name="jdbc/dataSource" 
-			url="jdbc:mysql://localhost:3306/documentParser_nikos?autoReconnect=true&amp;characterEncoding=UTF-8" 
+			url="jdbc:mysql://localhost:3306/documentParser?autoReconnect=true&amp;characterEncoding=UTF-8" 
 			username="root" 
 			password="ph1re$0ft22" 
 			logAbandoned="true" 

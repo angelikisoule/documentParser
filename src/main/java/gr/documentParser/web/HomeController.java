@@ -1,10 +1,12 @@
 package gr.documentParser.web;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -28,10 +30,14 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import gr.documentParser.dao.InterviewDao;
 import gr.documentParser.model.Answer;
+import gr.documentParser.model.AnswerToken;
 import gr.documentParser.model.Interview;
+import gr.documentParser.model.Person;
 import gr.documentParser.model.Question;
 import gr.documentParser.service.InterviewService;
+import gr.documentParser.service.PersonService;
 import gr.documentParser.service.QuestionService;
 
 @Controller
@@ -39,6 +45,8 @@ public class HomeController {
 	
 	@Inject private InterviewService interviewService;
 	@Inject private QuestionService questionService;
+	@Inject private PersonService personService;
+	
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	public String home(Locale locale, Model model) {
@@ -46,28 +54,51 @@ public class HomeController {
 	}
 
 	@RequestMapping(value = "/parseDoc", method = RequestMethod.GET)
-	public String parseDoc(Locale locale, Model model) {
-		parseRtfFile("/Users/asoule/Downloads/sample1.rtf"); //TODO A Loop Here To Read More Than One Files
+	public String parseDoc(Locale locale, Model model) throws UnsupportedEncodingException {
+		
+		//A Loop Here To Read More Than One Files
+		final File folder = new File("/Users/asoule/Documents/dataParser/rtf/");
+		for (final File fileEntry : folder.listFiles()) {
+	        if (fileEntry.isDirectory()) {
+	            listFilesForFolder(fileEntry);
+	        } else {
+	            System.out.println(fileEntry.getName());
+	            parseRtfFile(fileEntry);
+	        }
+	    }
+		
 		return "home";
 	}
 
 	@RequestMapping(value = "/parseXls", method = RequestMethod.GET)
 	public String parseXls(Locale locale, Model model) {
-		parseXlsFile("/Users/asoule/Downloads/telephones1.xls"); //TODO Implement Method
+		
+		//A Loop Here To Read More Than One Files
+		final File folder = new File("/Users/asoule/Documents/dataParser/xls-phone-open/");
+		for (final File fileEntry : folder.listFiles()) {
+			if (fileEntry.isDirectory()) {
+				listFilesForFolder(fileEntry);
+			} else {
+				System.out.println(fileEntry.getName());
+			    parseXlsFile(fileEntry.toString()); //TODO Implement Method
+			}
+		}
+		
 		return "home";
 	}
 
 	/**
 	 * Parse A .rtf File Given It's Path
-	 * @param filePath
+	 * @param file
+	 * @throws UnsupportedEncodingException 
 	 */
-	private void parseRtfFile(String filePath) {
+	private void parseRtfFile(File file) throws UnsupportedEncodingException {
 		// read rtf from file
 	    JEditorPane pane = new JEditorPane();
 	    pane.setContentType("text/rtf");
 	    EditorKit rtfKit = pane.getEditorKitForContentType("text/rtf");
 	    try {
-			rtfKit.read(new FileReader(filePath), pane.getDocument(), 0);
+			rtfKit.read(new FileReader(file.toString()), pane.getDocument(), 0);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -93,6 +124,8 @@ public class HomeController {
 			e.printStackTrace();
 		}
 	    String documentText = writer.toString();
+//	    byte[] text =documentText1.getBytes("windows-1253");
+//	    String documentText = new String(text,"UTF-8");
 	    
 	    String paragraphs[] = documentText.split("\n");
 	        
@@ -101,6 +134,7 @@ public class HomeController {
 	        Set<Answer> interviewAnswers = null;
 	        Question question = null;
 	        Answer answer = null;
+	        Set<AnswerToken> tokens = null;
 	        StringBuilder answerText = null;
 	        
 	        /*
@@ -113,8 +147,8 @@ public class HomeController {
 		        	if(p.startsWith("Interview")) {
 	        			if(interview!=null) {
 	        				if(answer!=null) { //Manipulate Previous Interview's Last Question's Answer
-		        				answer.setAnswerText(answerText.toString());
-		        				interviewAnswers.add(answer);
+	        					answer.setAnswerTokens(tokens);
+	        					interviewAnswers.add(answer);
 		        			}
 	        				interview.setAnswers(interviewAnswers);
 	        	        	parsed.add(interview);
@@ -123,18 +157,19 @@ public class HomeController {
 	        			interview = new Interview();
 	        			interviewAnswers = new LinkedHashSet<Answer>();
 	        			interview.setInterviewId(extractInterviewId(p));
-	        			interview.setFilename("filename"); //TODO It Would Be Good To Keep The Filename In The Database	        		
+	        			interview.setFilename(file.getName()); //TODO It Would Be Good To Keep The Filename In The Database	        		
 	        			question = null;
 	        			answer = null;
 		        	}
 	        		else if(isQuestion(p)) { //Question
 	        			if(answer!=null) { //Manipulate Previous Question's Answer
-	        				answer.setAnswerText(answerText.toString());
+	        				answer.setAnswerTokens(tokens);
 	        				interviewAnswers.add(answer);
 	        			}
 	        			//Proceed With The Next Question
 	        			question = new Question();
 	        			answer = new Answer();
+	        			tokens = new LinkedHashSet<AnswerToken>();
 	        			answerText = new StringBuilder();
 	        			
 	        			String questionCode = getQuestionCode(p);
@@ -142,13 +177,21 @@ public class HomeController {
 	        				question = questionService.questionExists(questionCode, p);
 	        				answer.setQuestion(question);
 	        				answer.setInterview(interview);
-	        				//answer.setAnswerText(answerText.toString());
-	        				//interviewAnswers.add(answer);
 	        			}
 	        		}
 	        		else { //Answer
-	        			answerText.append(p); //An Answer May Contain More Than One Paragraph
-	        			answerText.append(" "); //A Divider For Answers With More Than One Line
+	        			/*
+	        			 * στον AnswerTokens μπορείς να προσθέσεις και άλλες στήλες για να σπάσεις π.χ.
+	        			 * απαντήσεις σαν την  S5  95.2 ATHENS DEE JAY	4 (4) ή Παλαιότερα ή ΠΟΤΕ 
+	        			 * και άρα απλά εδώ να βάλεις ένα if(question=Q60) βάλε τιμές σε αυτές τις στήλες
+	        			 * ΑΡΑ θα έχεις ελαφρώς δυσκολότερο query στο view σου, αλλα την βάση πολύ 
+	        			 * καλύτερα "κανονικοποιημένη". θα σε βοηθήσει όταν ρωτήσει : πόσοι είπαν στον
+	        			 * GALAXY "παλαιότερα ή ποτε" (κατάλαβες τι θέλω να πω)
+	        			 */
+	        			AnswerToken token = new AnswerToken();
+	        			token.setAnswer(answer);
+	        			token.setAnswerTokenText(p);
+	        			tokens.add(token);
 	        		}
 	        	}
 	        }
@@ -157,9 +200,9 @@ public class HomeController {
 	         */
 	        if(interview!=null) {
 	        	if(answer!=null) { //Manipulate Previous Interview's Last Question's Answer
-    				answer.setAnswerText(answerText.toString());
+	        		answer.setAnswerTokens(tokens);
     				interviewAnswers.add(answer);
-    			}
+	        	}
 	        	interview.setAnswers(interviewAnswers);
 	        	parsed.add(interview);
 	        }
@@ -167,19 +210,24 @@ public class HomeController {
 	         * Persist Document's Interviews
 	         */
 	        interviewService.persistInterviews(parsed);
-		}
+		
+	}
 	
 	/**
 	 * Parse A .xls File Given It's Path
 	 * @param filePath
 	 */
 	private void parseXlsFile(String filePath) { //TODO Parse And Update Interview Entity's Fields
+		HashSet<Person> persons = new HashSet<Person>();
 		try {
 		    POIFSFileSystem fs = new POIFSFileSystem(new FileInputStream(filePath));
 		    HSSFWorkbook wb = new HSSFWorkbook(fs);
 		    HSSFSheet sheet = wb.getSheetAt(0);
 		    HSSFRow row;
-		    HSSFCell cell;
+		    HSSFCell cell1;
+		    HSSFCell cell2;
+		    HSSFCell cell3;
+		    HSSFCell cell4;
 
 		    int rows; // No of rows
 		    rows = sheet.getPhysicalNumberOfRows();
@@ -196,28 +244,51 @@ public class HomeController {
 		        }
 		    }
 		    
-		    
-		    for(int r = 0; r < rows; r++) {
+		    //First Row Just Info Tables, No Data
+		    for(int r = 1; r < rows; r++) {
 		        row = sheet.getRow(r);
 		        if(row != null) {
-		            for(int c = 0; c < cols; c++) {
-		                cell = row.getCell((short)c);
-		                if(cell != null) {
-		                    // Your code here
-		                	if(r==0){
-//		                		Do nothing
-		                		System.out.print(cell.toString()+"\t");
-		                	}
-		                	else{
-//		                		Store data
-		                		Long lObl = new Long((long)Double.parseDouble(cell.toString()));
-		                		System.out.print(lObl+"\t");
-		                	}
-		                }
+		        	cell1 = row.getCell((short)0);
+		            cell2 = row.getCell((short)1);
+		            cell3 = row.getCell((short)2);
+		            cell4 = row.getCell((short)3);
+
+		            //Store data
+		            if(cell1!=null && cell2!=null && cell3!=null && cell4!=null ){
+		            	
+		            	Long interviewId= new Long((long)Double.parseDouble(cell1.toString()));
+		            		Person person = new Person();
+		            		
+		            		//Interview inter = interviewService.getByInterviewId(interviewId);
+		            		person.setInterviewId(interviewId.toString());
+		            		
+		            		Long x1= new Long((long)Double.parseDouble(cell2.toString()));
+		            		String addressId= x1.toString();
+		            		person.setAddressid(addressId);
+		            		//inter.setAddressId(addressId);
+		            		
+		            		Long x2= new Long((long)Double.parseDouble(cell3.toString()));
+		            		String phone1= x2.toString();
+		            		person.setPhone1(phone1);
+		            		//inter.setPhone1(phone1);
+		            		
+		            		Long x3= new Long((long)Double.parseDouble(cell4.toString()));
+		            		String phone2= x3.toString();
+		            		person.setPhone2(phone2);
+		            		//inter.setPhone2(phone2);
+		            		
+		            		person.setFilename(filePath);
+		            		
+		            		System.out.print(interviewId+"\t"+addressId+"\t"+phone1+"\t"+phone2);
+		            		personService.persistPerson(person);
+		            	
+		            	
+		            	
 		            }
-		            System.out.print("\n");
+		                
+		            }
+		            System.out.print("\nhello");
 		        }
-		    }
 		} catch(Exception ioe) {
 		    ioe.printStackTrace();
 		}
@@ -272,5 +343,16 @@ public class HomeController {
 	    	result = matcher.group(1);
 	    }
 	    return result;
+	}
+	
+	
+	public void listFilesForFolder(final File folder) {
+	    for (final File fileEntry : folder.listFiles()) {
+	        if (fileEntry.isDirectory()) {
+	            listFilesForFolder(fileEntry);
+	        } else {
+	            System.out.println(fileEntry.getName());
+	        }
+	    }
 	}
 }
