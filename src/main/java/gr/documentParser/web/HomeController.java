@@ -80,7 +80,7 @@ public class HomeController {
 				listFilesForFolder(fileEntry);
 			} else {
 				System.out.println(fileEntry.getName());
-			    parseXlsFile(fileEntry.toString()); //TODO Implement Method
+			    parseXlsFile(fileEntry); //TODO Implement Method
 			}
 		}
 		
@@ -215,12 +215,12 @@ public class HomeController {
 	
 	/**
 	 * Parse A .xls File Given It's Path
-	 * @param filePath
+	 * @param file
 	 */
-	private void parseXlsFile(String filePath) { //TODO Parse And Update Interview Entity's Fields
+	private void parseXlsFile(File file) { //TODO Parse And Update Interview Entity's Fields
 		HashSet<Person> persons = new HashSet<Person>();
 		try {
-		    POIFSFileSystem fs = new POIFSFileSystem(new FileInputStream(filePath));
+		    POIFSFileSystem fs = new POIFSFileSystem(new FileInputStream(file.toString()));
 		    HSSFWorkbook wb = new HSSFWorkbook(fs);
 		    HSSFSheet sheet = wb.getSheetAt(0);
 		    HSSFRow row;
@@ -277,7 +277,7 @@ public class HomeController {
 		            		person.setPhone2(phone2);
 		            		//inter.setPhone2(phone2);
 		            		
-		            		person.setFilename(filePath);
+		            		person.setFilename(file.getName());
 		            		
 		            		System.out.print(interviewId+"\t"+addressId+"\t"+phone1+"\t"+phone2);
 		            		personService.persistPerson(person);
