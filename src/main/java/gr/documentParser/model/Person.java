@@ -24,7 +24,7 @@ public class Person {
 	private String phone2;
 	
 	@Column(name = "addressId")
-	private String addressid;
+	private Long addressid;
 	
 	
 	@Column(name = "interviewId")
@@ -44,12 +44,12 @@ public class Person {
 	}
 
 
-	public String getAddressid() {
+	public Long getAddressid() {
 		return addressid;
 	}
 
 
-	public void setAddressid(String addressid) {
+	public void setAddressid(Long addressid) {
 		this.addressid = addressid;
 	}
 

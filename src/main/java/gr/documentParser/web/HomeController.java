@@ -3,23 +3,18 @@ package gr.documentParser.web;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
-import java.io.Writer;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.inject.Inject;
-import javax.swing.JEditorPane;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.EditorKit;
 
 import org.apache.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFCell;
@@ -32,7 +27,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import gr.documentParser.dao.InterviewDao;
+
 import gr.documentParser.model.Answer;
 import gr.documentParser.model.AnswerToken;
 import gr.documentParser.model.Interview;
@@ -61,14 +56,16 @@ public class HomeController {
 	public String parseDoc(Locale locale, Model model) throws UnsupportedEncodingException {
 		
 		//A Loop Here To Read More Than One Files
-		final File folder = new File("/Users/asoule/Documents/dataParser/txt-interviews/");
+		final File folder = new File("/home/angeliki/Downloads/documentParser/rtf/test/");
 		for (final File fileEntry : folder.listFiles()) {
 	        if (fileEntry.isDirectory()) {
 	            listFilesForFolder(fileEntry);
 	        } else {
 	            System.out.println(fileEntry.getName());
-	            if(!fileEntry.getName().startsWith(".")){
-	            	parseRtfFile(fileEntry);
+	            if(!fileEntry.getName().startsWith(".") && fileEntry.getName().endsWith(".txt")){
+	            	List<Interview> testInterviews = interviewService.getByFilename(fileEntry.getName());
+	            	if(interviewService.getByFilename(fileEntry.getName())==null) //Dont Parse Same Files
+	            		parseRtfFile(fileEntry);
 	            }
 	        }
 	    }
@@ -80,13 +77,13 @@ public class HomeController {
 	public String parseXls(Locale locale, Model model) {
 		
 		//A Loop Here To Read More Than One Files
-		final File folder = new File("/Users/asoule/Documents/dataParser/xls-phone-open/");
+		final File folder = new File("/home/angeliki/Downloads/documentParser/xls/telephones-renamed/");
 		for (final File fileEntry : folder.listFiles()) {
 			if (fileEntry.isDirectory()) {
 				listFilesForFolder(fileEntry);
 			} else {
 				System.out.println(fileEntry.getName());
-				parseXlsFile(fileEntry); //TODO Implement Method
+				parseXlsFile(fileEntry);
 			}
 		}
 		
@@ -112,7 +109,6 @@ public class HomeController {
 	        StringBuilder answerText = null;
 			
 			String paragraph;
-
 			while ((paragraph = br.readLine()) != null) {
 				String p = paragraph.trim();
 				
@@ -131,7 +127,7 @@ public class HomeController {
 	        			interview = new Interview();
 	        			interviewAnswers = new LinkedHashSet<Answer>();
 	        			interview.setInterviewId(extractInterviewId(p));
-	        			interview.setFilename(file.getName()); //TODO It Would Be Good To Keep The Filename In The Database	        		
+	        			interview.setFilename(file.getName());         		
 	        			question = null;
 	        			answer = null;
 		        	}
@@ -165,7 +161,19 @@ public class HomeController {
 	        			AnswerToken token = new AnswerToken();
 	        			token.setAnswer(answer);
 	        			token.setAnswerTokenText(p);
+	        			if(answer.getQuestion().getQuestionCode().equals("Q60")) {
+	        				String[] sub = q60(p);
+	        				if(sub!=null) {
+	        					System.out.println("SubQuestion = " + sub[0] + ", SubAnswer = " + sub[1]);
+	        					token.setSubQuestion(sub[0].trim());
+	        					token.setSubAnswer(sub[1]);
+	        				}
+	        			}
 	        			tokens.add(token);
+	        			if(token.getAnswer().getQuestion().getQuestionCode().equals("X2")) {
+	        				Long x = Long.parseLong(p);
+	        				interview.setAddressId(x);
+	        			}
 	        		}
 				}
 			}
@@ -203,6 +211,7 @@ public class HomeController {
 		    HSSFCell cell2;
 		    HSSFCell cell3;
 		    HSSFCell cell4;
+		    Set<Interview> compliteInterviews = new HashSet<Interview>();
 
 		    int rows; // No of rows
 		    rows = sheet.getPhysicalNumberOfRows();
@@ -233,33 +242,58 @@ public class HomeController {
 		            	Long interviewId= new Long((long)Double.parseDouble(cell1.toString()));
 		            	Person person = new Person();
 		            		
-		            	//Interview inter = interviewService.getByInterviewId(interviewId);
 		            	person.setInterviewId(interviewId.toString());
-		            		
+		            	
 		            	Long x1= new Long((long)Double.parseDouble(cell2.toString()));
-		            	String addressId= x1.toString();
+		            	Long addressId= x1;
+		            	
+		            	//Check That AddressId Is Unique
+	        			if(personService.countAddressId(addressId)==0)
+	        				System.out.println("AddressId : "+addressId+" DOES NOT EXIST");
+	        			else
+	        				System.out.println("AddressId : "+addressId+" ALREADY EXISTS");
+
 		            	person.setAddressid(addressId);
-		            	//inter.setAddressId(addressId);
 		            		
 		            	Long x2= new Long((long)Double.parseDouble(cell3.toString()));
 		            	String phone1= x2.toString();
 		            	person.setPhone1(phone1);
-		            	//inter.setPhone1(phone1);
 		            		
 		            	Long x3= new Long((long)Double.parseDouble(cell4.toString()));
 		            	String phone2= x3.toString();
 		            	person.setPhone2(phone2);
-		            	//inter.setPhone2(phone2);
-		            		
+
 		            	person.setFilename(file.getName());
 		            	
 		            	System.out.print(interviewId+"\t"+addressId+"\t"+phone1+"\t"+phone2);
 		            	personService.persistPerson(person);
+		            	
+		            	
+		            	
+		            	//Persist Interviews
+		            	if(interviewService.countByAddressId(addressId)==0){
+		            		System.out.println("\nAddressId : "+addressId+" is NOT Storred");
+		            		//DO Nothing, Wait Other Parser To Store New Interview Files
+
+		            	}
+		            	else if(interviewService.countByAddressId(addressId)==1){
+		            		//Perist Existing Interview
+		            		System.out.println("AddressId : "+addressId+" is Storred");
+		            		Interview inter = interviewService.getByAddressId(addressId);
+		            		inter.setPhone1(phone1);
+		            		inter.setPhone2(phone2);
+		            		compliteInterviews.add(inter);
+		            	}
+		            	else{
+		            		//AddressId Is More Than One Time, Cannot Match Interview With Person (phones)
+		            		System.out.println("AddressId : "+addressId+" is Storred 2 times");
+		            		
+		            	}
 		            }
-		                
 		        }
 		        System.out.print("\n");
 		    }
+		    interviewService.persistInterviews(compliteInterviews);
 		} catch(Exception ioe) {
 		    ioe.printStackTrace();
 		}
@@ -325,5 +359,20 @@ public class HomeController {
 	            System.out.println(fileEntry.getName());
 	        }
 	    }
+	}
+	
+	/**
+	 * 
+	 * @param paragraph
+	 * @return
+	 */
+	private String[] q60(String paragraph) {
+		String[] result = null;
+		Pattern pattern = Pattern.compile("^(.*)(\\d{1,2}\\s+[(]\\d{1,2}[)].*)$"); 
+		Matcher matcher = pattern.matcher(paragraph);
+	    if(matcher.matches()) {
+	    	result = new String[] { matcher.group(1), matcher.group(2)};
+	    }
+	    return result;
 	}
 }

@@ -8,5 +8,7 @@ public interface PersonService {
 
 	void persistPerson(Person person);
 	
-	Person getByInterviewId(String interviewId);
+	Person getByAddressId(Long addressId);
+	
+	Long countAddressId(Long addressId);
 }

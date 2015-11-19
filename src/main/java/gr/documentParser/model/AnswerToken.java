@@ -15,6 +15,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 
+import org.hibernate.validator.constraints.Length;
 import org.springframework.format.annotation.DateTimeFormat;
 
 @Entity
@@ -35,6 +36,30 @@ public class AnswerToken {
 	@Column(name = "answerTokenText")
 	private String answerTokenText;
 	
+	@Length(min = 1, max = 1000)
+	@Column(name = "subQuestion")
+	private String subQuestion;
+	
+	@Length(min = 1, max = 1000)
+	@Column(name = "subAnswer")
+	private String subAnswer;
+	
+	public String getSubQuestion() {
+		return subQuestion;
+	}
+
+	public void setSubQuestion(String subQuestion) {
+		this.subQuestion = subQuestion;
+	}
+
+	public String getSubAnswer() {
+		return subAnswer;
+	}
+
+	public void setSubAnswer(String subAnswer) {
+		this.subAnswer = subAnswer;
+	}
+
 	@Temporal(TemporalType.TIMESTAMP)
 	@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	@Column(name = "dateUpdated")

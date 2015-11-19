@@ -6,7 +6,9 @@ import gr.documentParser.model.Person;
 
 public interface PersonDao extends AbstractDao<Person>{
 
-	Person getByInterviewId(String interviewId);
+	Person getByAddressId(Long addressId);
 	
 	void persistPerson(Person person);
+	
+	Long countAddressId(Long addressId);
 }

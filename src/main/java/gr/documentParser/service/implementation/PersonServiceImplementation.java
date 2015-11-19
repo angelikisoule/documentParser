@@ -18,13 +18,18 @@ public class PersonServiceImplementation implements PersonService{
 	@Inject private PersonDao personDao;
 	
 	@Override
-	public Person getByInterviewId(String interviewId) {
-		return personDao.getByInterviewId(interviewId);
+	public Person getByAddressId(Long interviewId) {
+		return personDao.getByAddressId(interviewId);
 	}
 
 	@Override
 	public void persistPerson(Person person) {
 		personDao.persistPerson(person);
 		
+	}
+
+	@Override
+	public Long countAddressId(Long addressId) {
+		return personDao.countAddressId(addressId);
 	}
 }

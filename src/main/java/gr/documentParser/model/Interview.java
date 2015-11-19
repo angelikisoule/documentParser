@@ -32,9 +32,8 @@ public class Interview {
 	@Column(name = "interviewId")
 	private Long interviewId;
 	
-	@Length(min = 1, max = 15)
 	@Column(name = "addressId")
-	private String addressId;
+	private Long addressId;
 	
 	@Length(min = 1, max = 15)
 	@Column(name = "phone1")
@@ -73,11 +72,11 @@ public class Interview {
 		this.interviewId = interviewId;
 	}
 
-	public String getAddressId() {
+	public Long getAddressId() {
 		return addressId;
 	}
 
-	public void setAddressId(String addressId) {
+	public void setAddressId(Long addressId) {
 		this.addressId = addressId;
 	}
 

@@ -1,5 +1,6 @@
 package gr.documentParser.dao.hibernate;
 
+import java.util.List;
 import java.util.Set;
 
 import org.hibernate.Query;
@@ -13,7 +14,7 @@ public class HibernateInterviewDao extends AbstractHibernateDao<Interview> imple
 
 	@Override
 	public Interview getByInterviewId(Long interviewId) {
-		Query query = getSession().createQuery("FROM Interview interviews WHERE interviewId=:interviewId");
+		Query query = getSession().createQuery("SELECT interview FROM Interview interview WHERE interviewId=:interviewId");
 		query.setParameter("interviewId", interviewId);
 		return (Interview) query.uniqueResult();
 	}
@@ -29,12 +30,34 @@ public class HibernateInterviewDao extends AbstractHibernateDao<Interview> imple
 	 * An Interview May By False Be Contained In More Than One Files Or We May Read The Same File More Than Once
 	 */
 	protected void interviewExists(Interview interview) {
-		Interview existing = getByInterviewId(interview.getInterviewId());
+		Interview existing = getByAddressId(interview.getAddressId());
 		if(existing!=null) {
+			System.out.println("Interview with Id "+interview.getId()+" and interviewId "+interview.getInterviewId()+" is already exists.");
 			return; //TODO It Would Be Better To Merge With The New Data
 		}
 		else {
 			persist(interview);
 		}
+	}
+
+	@Override
+	public Interview getByAddressId(Long addressId) {
+		Query query = getSession().createQuery("SELECT interviews FROM Interview interviews WHERE addressId=:addressId");
+		query.setParameter("addressId", addressId);
+		return (Interview) query.uniqueResult();
+	}
+
+	@Override
+	public Long countByAddressId(Long addressId) {
+		Query query = getSession().createQuery("SELECT COUNT(*) FROM Interview interviews WHERE addressId=:addressId");
+		query.setParameter("addressId", addressId);
+		return (Long) query.uniqueResult();
+	}
+
+	@Override
+	public List<Interview> getByFilename(String filename) {
+		Query query = getSession().createQuery("SELECT interviews FROM Interview interviews WHERE filename=:filename");
+		query.setParameter("filename", filename);
+		return (List<Interview>) query.list();
 	}
 }

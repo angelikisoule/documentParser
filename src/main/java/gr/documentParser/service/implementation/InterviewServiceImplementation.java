@@ -1,5 +1,6 @@
 package gr.documentParser.service.implementation;
 
+import java.util.List;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -20,5 +21,25 @@ public class InterviewServiceImplementation implements InterviewService {
 	@Override
 	public void persistInterviews(Set<Interview> interviews) {
 		interviewDao.persistInterviews(interviews);
+	}
+
+	@Override
+	public Interview getByInterviewId(Long interviewId) {
+		return interviewDao.getByInterviewId(interviewId);
+	}
+
+	@Override
+	public Interview getByAddressId(Long addressId) {
+		return interviewDao.getByAddressId(addressId);
+	}
+
+	@Override
+	public Long countByAddressId(Long addressId) {
+		return interviewDao.countByAddressId(addressId);
+	}
+
+	@Override
+	public List<Interview> getByFilename(String filename) {
+		return interviewDao.getByFilename(filename);
 	}
 }

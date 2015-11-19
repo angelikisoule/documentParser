@@ -11,9 +11,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class PersonHibernateDao extends AbstractHibernateDao<Person> implements PersonDao{
 	@Override
-	public Person getByInterviewId(String interviewId) {
-		Query query = getSession().createQuery("FROM Person persons WHERE interviewId=:interviewId");
-		query.setParameter("interviewId", interviewId);
+	public Person getByAddressId(Long addressId) {
+		Query query = getSession().createQuery("FROM Person persons WHERE addressId=:addressId");
+		query.setParameter("addressId", addressId);
 		return (Person) query.uniqueResult();
 	}
 
@@ -21,6 +21,13 @@ public class PersonHibernateDao extends AbstractHibernateDao<Person> implements 
 	public void persistPerson(Person person) {
 		persist(person);
 		
+	}
+
+	@Override
+	public Long countAddressId(Long addressId) {
+		Query query = getSession().createQuery("SELECT COUNT(*) FROM Person persons WHERE addressId=:addressId");
+		query.setParameter("addressId", addressId);
+		return (Long) query.uniqueResult();
 	}
 	
 }
