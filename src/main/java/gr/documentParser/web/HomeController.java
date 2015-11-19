@@ -1,5 +1,6 @@
 package gr.documentParser.web;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -20,6 +21,7 @@ import javax.swing.JEditorPane;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.EditorKit;
 
+import org.apache.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -43,6 +45,8 @@ import gr.documentParser.service.QuestionService;
 @Controller
 public class HomeController {
 	
+	private static final Logger logger = Logger.getLogger(HomeController.class);
+	
 	@Inject private InterviewService interviewService;
 	@Inject private QuestionService questionService;
 	@Inject private PersonService personService;
@@ -57,13 +61,15 @@ public class HomeController {
 	public String parseDoc(Locale locale, Model model) throws UnsupportedEncodingException {
 		
 		//A Loop Here To Read More Than One Files
-		final File folder = new File("/Users/asoule/Documents/dataParser/rtf/");
+		final File folder = new File("/Users/asoule/Documents/dataParser/txt-interviews/");
 		for (final File fileEntry : folder.listFiles()) {
 	        if (fileEntry.isDirectory()) {
 	            listFilesForFolder(fileEntry);
 	        } else {
 	            System.out.println(fileEntry.getName());
-	            parseRtfFile(fileEntry);
+	            if(!fileEntry.getName().startsWith(".")){
+	            	parseRtfFile(fileEntry);
+	            }
 	        }
 	    }
 		
@@ -80,7 +86,7 @@ public class HomeController {
 				listFilesForFolder(fileEntry);
 			} else {
 				System.out.println(fileEntry.getName());
-			    parseXlsFile(fileEntry); //TODO Implement Method
+				parseXlsFile(fileEntry); //TODO Implement Method
 			}
 		}
 		
@@ -93,58 +99,26 @@ public class HomeController {
 	 * @throws UnsupportedEncodingException 
 	 */
 	private void parseRtfFile(File file) throws UnsupportedEncodingException {
-		// read rtf from file
-	    JEditorPane pane = new JEditorPane();
-	    pane.setContentType("text/rtf");
-	    EditorKit rtfKit = pane.getEditorKitForContentType("text/rtf");
-	    try {
-			rtfKit.read(new FileReader(file.toString()), pane.getDocument(), 0);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (BadLocationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	    rtfKit = null;
+		try 
+		{
+			BufferedReader br = new BufferedReader(new FileReader(file.toString()));
 
-	    // convert to text
-	    EditorKit txtKit = pane.getEditorKitForContentType("text/plain");
-	    Writer writer = new StringWriter();
-	    try {
-			txtKit.write(writer, pane.getDocument(), 0, pane.getDocument().getLength());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (BadLocationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	    String documentText = writer.toString();
-//	    byte[] text =documentText1.getBytes("windows-1253");
-//	    String documentText = new String(text,"UTF-8");
-	    
-	    String paragraphs[] = documentText.split("\n");
-	        
-	        Set<Interview> parsed = new HashSet<Interview>();
+			Set<Interview> parsed = new HashSet<Interview>();
 	        Interview interview = null;
 	        Set<Answer> interviewAnswers = null;
 	        Question question = null;
 	        Answer answer = null;
 	        Set<AnswerToken> tokens = null;
 	        StringBuilder answerText = null;
-	        
-	        /*
-	         * The Paragraphs Loop
-	         */
-	        for(int i = 0; i < paragraphs.length; i++) {
-	        	String p = paragraphs[i].trim();
-	        	if(p!=null && !p.isEmpty() && p.trim().length()!=0) { //Skip Empty Lines
+			
+			String paragraph;
+
+			while ((paragraph = br.readLine()) != null) {
+				String p = paragraph.trim();
+				
+				if(p!=null && !p.isEmpty() && p.trim().length()!=0) { //Skip Empty Lines
 	        		System.out.println("paragraph : "+p);
-		        	if(p.startsWith("Interview")) {
+	        		if(p.startsWith("Interview")) {
 	        			if(interview!=null) {
 	        				if(answer!=null) { //Manipulate Previous Interview's Last Question's Answer
 	        					answer.setAnswerTokens(tokens);
@@ -193,9 +167,9 @@ public class HomeController {
 	        			token.setAnswerTokenText(p);
 	        			tokens.add(token);
 	        		}
-	        	}
-	        }
-	        /*
+				}
+			}
+			/*
 	         * The Paragraphs Loop Will End Leaving A Last Not Added To The Results Interview
 	         */
 	        if(interview!=null) {
@@ -206,10 +180,12 @@ public class HomeController {
 	        	interview.setAnswers(interviewAnswers);
 	        	parsed.add(interview);
 	        }
-	        /*
-	         * Persist Document's Interviews
-	         */
 	        interviewService.persistInterviews(parsed);
+			br.close();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		
 	}
 	
@@ -218,7 +194,6 @@ public class HomeController {
 	 * @param file
 	 */
 	private void parseXlsFile(File file) { //TODO Parse And Update Interview Entity's Fields
-		HashSet<Person> persons = new HashSet<Person>();
 		try {
 		    POIFSFileSystem fs = new POIFSFileSystem(new FileInputStream(file.toString()));
 		    HSSFWorkbook wb = new HSSFWorkbook(fs);
@@ -255,40 +230,36 @@ public class HomeController {
 
 		            //Store data
 		            if(cell1!=null && cell2!=null && cell3!=null && cell4!=null ){
-		            	
 		            	Long interviewId= new Long((long)Double.parseDouble(cell1.toString()));
-		            		Person person = new Person();
+		            	Person person = new Person();
 		            		
-		            		//Interview inter = interviewService.getByInterviewId(interviewId);
-		            		person.setInterviewId(interviewId.toString());
+		            	//Interview inter = interviewService.getByInterviewId(interviewId);
+		            	person.setInterviewId(interviewId.toString());
 		            		
-		            		Long x1= new Long((long)Double.parseDouble(cell2.toString()));
-		            		String addressId= x1.toString();
-		            		person.setAddressid(addressId);
-		            		//inter.setAddressId(addressId);
+		            	Long x1= new Long((long)Double.parseDouble(cell2.toString()));
+		            	String addressId= x1.toString();
+		            	person.setAddressid(addressId);
+		            	//inter.setAddressId(addressId);
 		            		
-		            		Long x2= new Long((long)Double.parseDouble(cell3.toString()));
-		            		String phone1= x2.toString();
-		            		person.setPhone1(phone1);
-		            		//inter.setPhone1(phone1);
+		            	Long x2= new Long((long)Double.parseDouble(cell3.toString()));
+		            	String phone1= x2.toString();
+		            	person.setPhone1(phone1);
+		            	//inter.setPhone1(phone1);
 		            		
-		            		Long x3= new Long((long)Double.parseDouble(cell4.toString()));
-		            		String phone2= x3.toString();
-		            		person.setPhone2(phone2);
-		            		//inter.setPhone2(phone2);
+		            	Long x3= new Long((long)Double.parseDouble(cell4.toString()));
+		            	String phone2= x3.toString();
+		            	person.setPhone2(phone2);
+		            	//inter.setPhone2(phone2);
 		            		
-		            		person.setFilename(file.getName());
-		            		
-		            		System.out.print(interviewId+"\t"+addressId+"\t"+phone1+"\t"+phone2);
-		            		personService.persistPerson(person);
+		            	person.setFilename(file.getName());
 		            	
-		            	
-		            	
+		            	System.out.print(interviewId+"\t"+addressId+"\t"+phone1+"\t"+phone2);
+		            	personService.persistPerson(person);
 		            }
 		                
-		            }
-		            System.out.print("\nhello");
 		        }
+		        System.out.print("\n");
+		    }
 		} catch(Exception ioe) {
 		    ioe.printStackTrace();
 		}
