@@ -7,10 +7,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,8 +65,7 @@ public class HomeController {
 	        } else {
 	            System.out.println(fileEntry.getName());
 	            if(!fileEntry.getName().startsWith(".") && fileEntry.getName().endsWith(".txt")){
-	            	List<Interview> testInterviews = interviewService.getByFilename(fileEntry.getName());
-	            	if(interviewService.getByFilename(fileEntry.getName())==null) //Dont Parse Same Files
+	            	if(interviewService.getByFilename(fileEntry.getName())==null) //Don't Parse Same Files
 	            		parseRtfFile(fileEntry);
 	            }
 	        }
@@ -133,7 +134,7 @@ public class HomeController {
 		        	}
 	        		else if(isQuestion(p)) { //Question
 	        			if(answer!=null) { //Manipulate Previous Question's Answer
-	        				answer.setAnswerTokens(tokens);
+	        				answer.setAnswerTokens(filterAnswerTokens(tokens));
 	        				interviewAnswers.add(answer);
 	        			}
 	        			//Proceed With The Next Question
@@ -239,6 +240,7 @@ public class HomeController {
 
 		            //Store data
 		            if(cell1!=null && cell2!=null && cell3!=null && cell4!=null ){
+		            	//Persist Person Table
 		            	Long interviewId= new Long((long)Double.parseDouble(cell1.toString()));
 		            	Person person = new Person();
 		            		
@@ -374,5 +376,47 @@ public class HomeController {
 	    	result = new String[] { matcher.group(1), matcher.group(2)};
 	    }
 	    return result;
+	}
+	
+	/**
+	 * If An Answer Has Tokens That Start With 'S' We Have To Check If All Answer Tokens Start
+	 * With 'S'. Any Token That Does Not Must Be Appended To The Previous' 'S' Token Text Value
+	 * @param initial
+	 * @return
+	 */
+	private Set<AnswerToken> filterAnswerTokens(Set<AnswerToken> initial) {
+		Set<AnswerToken> result = new LinkedHashSet<AnswerToken>();
+		Stack<AnswerToken> finalTokens = new Stack<AnswerToken>(); //You Need The Push / Pop Functionality
+		int counter = 0;
+		boolean specialCase = false;
+		Iterator<AnswerToken> iterator = initial.iterator(); 
+	    while(iterator.hasNext()) {
+	    	AnswerToken element = iterator.next();
+	    	if(counter==0 && element.getAnswerTokenText().matches("^[S]\\d{1,2}.*$")) { //The First Time Check If The Answers Are Starting With 'S'
+	    		specialCase = true;
+	    	}
+	    	if(specialCase && element.getAnswerTokenText().matches("^[S]\\d{1,2}.*$")) { //Token Starts With 'S'
+	    		finalTokens.push(element);
+	    	}
+	    	else {
+	    		if(specialCase) { //The Answers Start With 'S' But Not The AnswerToken, Append The Text To The Previous One
+	    			AnswerToken previous = finalTokens.pop();
+	    			String previousText = previous.getAnswerTokenText();
+	    			previous.setAnswerTokenText(previousText + " " + element.getAnswerTokenText());
+	    			finalTokens.push(previous);
+	    		}
+	    		else {
+	    			finalTokens.push(element);
+	    		}
+	    	}
+	    	counter++;
+	    }
+		/*
+		 * Convert The Stack To LinkedHashSet
+		 */
+		for(AnswerToken token : finalTokens) {
+			result.add(token);
+		}
+		return result;
 	}
 }
