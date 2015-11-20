@@ -33,9 +33,11 @@ import gr.documentParser.model.AnswerToken;
 import gr.documentParser.model.Interview;
 import gr.documentParser.model.Person;
 import gr.documentParser.model.Question;
+import gr.documentParser.model.Stats;
 import gr.documentParser.service.InterviewService;
 import gr.documentParser.service.PersonService;
 import gr.documentParser.service.QuestionService;
+import gr.documentParser.service.StatsService;
 
 @Controller
 public class HomeController {
@@ -45,6 +47,7 @@ public class HomeController {
 	@Inject private InterviewService interviewService;
 	@Inject private QuestionService questionService;
 	@Inject private PersonService personService;
+	@Inject private StatsService statsService;
 	
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	public String home(Locale locale, Model model) {
@@ -96,6 +99,13 @@ public class HomeController {
 	        Question question = null;
 	        Answer answer = null;
 	        Set<AnswerToken> tokens = null;
+	        StringBuilder answerText = null;
+	        Long interviewCounter = 0L;
+			
+	        Stats stats = new Stats();
+			stats.setFilename(file.getName());
+			stats.setType("txt");
+	        
 			String paragraph;
 			while ((paragraph = br.readLine()) != null) {
 				String p = paragraph.trim();
@@ -108,6 +118,7 @@ public class HomeController {
 	        					interviewAnswers.add(answer);
 		        			}
 	        				interview.setAnswers(interviewAnswers);
+	        				interviewCounter++;
 	        	        	parsed.add(interview);
 	        			}
 	        			//Proceed With The Next Interview
@@ -134,6 +145,14 @@ public class HomeController {
 	        				answer.setQuestion(question);
 	        				answer.setInterview(interview);
 	        			}
+	        		}
+	        		else if(isLast(p)){
+	        			System.out.println(p);
+	        			System.out.println(getLast(p,1));
+	        			System.out.println(getLast(p,2));
+	        			stats.setElements(Long.valueOf(getLast(p,1)));
+	        			stats.setTotalElements(Long.valueOf(getLast(p,2)));
+	        			
 	        		}
 	        		else { //Answer
 	        			AnswerToken token = new AnswerToken();
@@ -165,6 +184,8 @@ public class HomeController {
 	        	interview.setAnswers(interviewAnswers);
 	        	parsed.add(interview);
 	        }
+	        stats.setCountElements(interviewCounter);
+	        statsService.persistStats(stats);
 	        interviewService.persistInterviews(parsed);
 			br.close();
 
@@ -177,7 +198,6 @@ public class HomeController {
 	 * Parse A .xls File Given It's Path
 	 * @param file
 	 */
-	@SuppressWarnings({ "deprecation", "resource" })
 	private void parseXlsFile(File file) { //TODO Parse And Update Interview Entity's Fields
 		try {
 		    POIFSFileSystem fs = new POIFSFileSystem(new FileInputStream(file.toString()));
@@ -189,6 +209,9 @@ public class HomeController {
 		    HSSFCell cell3;
 		    HSSFCell cell4;
 		    Set<Interview> compliteInterviews = new HashSet<Interview>();
+		    Stats stats = new Stats();
+			stats.setFilename(file.getName());
+			stats.setType("xls");
 
 		    int rows; // No of rows
 		    rows = sheet.getPhysicalNumberOfRows();
@@ -321,6 +344,29 @@ public class HomeController {
 		Matcher matcher = pattern.matcher(p);
 	    if(matcher.matches()) {
 	    	result = matcher.group(1);
+	    }
+	    return result;
+	}
+	
+	
+	private boolean isLast(String p) {
+		Pattern pattern = Pattern.compile("^(\\d{1,3}) interviews displayed out of (\\d{1,4}) interviews.$"); //X, C or Q Followed By Numbers
+	    Matcher matcher = pattern.matcher(p);
+	    if(matcher.matches()) {
+	    	return true;
+	    }
+	    else {
+	    	return false;
+	    }
+	}
+	
+	
+	private String getLast(String p, int i) {
+		String result = null;
+		Pattern pattern = Pattern.compile("^(\\d{1,3}) interviews displayed out of (\\d{1,4}) interviews.$"); //X, C or Q Followed By Numbers
+	    Matcher matcher = pattern.matcher(p);
+	    if(matcher.matches() && i<3) {
+	    	result = matcher.group(i);
 	    }
 	    return result;
 	}
