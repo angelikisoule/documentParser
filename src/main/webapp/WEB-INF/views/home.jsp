@@ -17,7 +17,7 @@
 	<div class="container-fluid">
 		<div class="row">
 			<div class="col-xs-12">
-				<a href="<c:url value="/parseDoc"/>" class="btn btn-default btn-lg active" role="button">Parse .txt Files</a>
+				<a href="<c:url value="/parseTxt"/>" class="btn btn-default btn-lg active" role="button">Parse .txt Files</a>
 				<a href="<c:url value="/parseXls"/>" class="btn btn-primary btn-lg active" role="button">Parse .xls Files</a>
 			</div>
 		</div>

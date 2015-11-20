@@ -9,7 +9,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.Stack;
@@ -29,7 +28,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-
 import gr.documentParser.model.Answer;
 import gr.documentParser.model.AnswerToken;
 import gr.documentParser.model.Interview;
@@ -48,36 +46,30 @@ public class HomeController {
 	@Inject private QuestionService questionService;
 	@Inject private PersonService personService;
 	
-
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	public String home(Locale locale, Model model) {
 		return "home";
 	}
 
-	@RequestMapping(value = "/parseDoc", method = RequestMethod.GET)
-	public String parseDoc(Locale locale, Model model) throws UnsupportedEncodingException {
-		
-		//A Loop Here To Read More Than One Files
-		final File folder = new File("/home/angeliki/Downloads/documentParser/rtf/test/");
-		for (final File fileEntry : folder.listFiles()) {
+	@RequestMapping(value = "/parseTxt", method = RequestMethod.GET)
+	public String parseTxt(Locale locale, Model model) throws UnsupportedEncodingException {
+		final File folder = new File("/home/blixabargeld/Desktop/test/");
+		for(final File fileEntry : folder.listFiles()) {
 	        if (fileEntry.isDirectory()) {
 	            listFilesForFolder(fileEntry);
 	        } else {
 	            System.out.println(fileEntry.getName());
 	            if(!fileEntry.getName().startsWith(".") && fileEntry.getName().endsWith(".txt")){
-	            	if(interviewService.getByFilename(fileEntry.getName())==null) //Don't Parse Same Files
-	            		parseRtfFile(fileEntry);
+	            	if(interviewService.getByFilename(fileEntry.getName()).isEmpty()) //Don't Parse Same Files
+	            		parseTxtFile(fileEntry);
 	            }
 	        }
 	    }
-		
 		return "home";
 	}
 
 	@RequestMapping(value = "/parseXls", method = RequestMethod.GET)
 	public String parseXls(Locale locale, Model model) {
-		
-		//A Loop Here To Read More Than One Files
 		final File folder = new File("/home/angeliki/Downloads/documentParser/xls/telephones-renamed/");
 		for (final File fileEntry : folder.listFiles()) {
 			if (fileEntry.isDirectory()) {
@@ -87,38 +79,32 @@ public class HomeController {
 				parseXlsFile(fileEntry);
 			}
 		}
-		
 		return "home";
 	}
 
 	/**
 	 * Parse A .rtf File Given It's Path
-	 * @param file
+	 * @param file The File To Parse
 	 * @throws UnsupportedEncodingException 
 	 */
-	private void parseRtfFile(File file) throws UnsupportedEncodingException {
-		try 
-		{
+	private void parseTxtFile(File file) throws UnsupportedEncodingException {
+		try {
 			BufferedReader br = new BufferedReader(new FileReader(file.toString()));
-
 			Set<Interview> parsed = new HashSet<Interview>();
 	        Interview interview = null;
 	        Set<Answer> interviewAnswers = null;
 	        Question question = null;
 	        Answer answer = null;
 	        Set<AnswerToken> tokens = null;
-	        StringBuilder answerText = null;
-			
 			String paragraph;
 			while ((paragraph = br.readLine()) != null) {
 				String p = paragraph.trim();
-				
 				if(p!=null && !p.isEmpty() && p.trim().length()!=0) { //Skip Empty Lines
-	        		System.out.println("paragraph : "+p);
-	        		if(p.startsWith("Interview")) {
+	        		System.out.println(p);
+					if(p.startsWith("Interview")) {
 	        			if(interview!=null) {
 	        				if(answer!=null) { //Manipulate Previous Interview's Last Question's Answer
-	        					answer.setAnswerTokens(tokens);
+	        					answer.setAnswerTokens(filterAnswerTokens(tokens));
 	        					interviewAnswers.add(answer);
 		        			}
 	        				interview.setAnswers(interviewAnswers);
@@ -128,7 +114,7 @@ public class HomeController {
 	        			interview = new Interview();
 	        			interviewAnswers = new LinkedHashSet<Answer>();
 	        			interview.setInterviewId(extractInterviewId(p));
-	        			interview.setFilename(file.getName());         		
+	        			interview.setFilename(file.getName());
 	        			question = null;
 	        			answer = null;
 		        	}
@@ -141,7 +127,6 @@ public class HomeController {
 	        			question = new Question();
 	        			answer = new Answer();
 	        			tokens = new LinkedHashSet<AnswerToken>();
-	        			answerText = new StringBuilder();
 	        			
 	        			String questionCode = getQuestionCode(p);
 	        			if(questionCode!=null) { //It Can't Be Null, The Same regex Got You In This if-else Branch
@@ -151,21 +136,12 @@ public class HomeController {
 	        			}
 	        		}
 	        		else { //Answer
-	        			/*
-	        			 * στον AnswerTokens μπορείς να προσθέσεις και άλλες στήλες για να σπάσεις π.χ.
-	        			 * απαντήσεις σαν την  S5  95.2 ATHENS DEE JAY	4 (4) ή Παλαιότερα ή ΠΟΤΕ 
-	        			 * και άρα απλά εδώ να βάλεις ένα if(question=Q60) βάλε τιμές σε αυτές τις στήλες
-	        			 * ΑΡΑ θα έχεις ελαφρώς δυσκολότερο query στο view σου, αλλα την βάση πολύ 
-	        			 * καλύτερα "κανονικοποιημένη". θα σε βοηθήσει όταν ρωτήσει : πόσοι είπαν στον
-	        			 * GALAXY "παλαιότερα ή ποτε" (κατάλαβες τι θέλω να πω)
-	        			 */
 	        			AnswerToken token = new AnswerToken();
 	        			token.setAnswer(answer);
 	        			token.setAnswerTokenText(p);
 	        			if(answer.getQuestion().getQuestionCode().equals("Q60")) {
 	        				String[] sub = q60(p);
 	        				if(sub!=null) {
-	        					System.out.println("SubQuestion = " + sub[0] + ", SubAnswer = " + sub[1]);
 	        					token.setSubQuestion(sub[0].trim());
 	        					token.setSubAnswer(sub[1]);
 	        				}
@@ -183,7 +159,7 @@ public class HomeController {
 	         */
 	        if(interview!=null) {
 	        	if(answer!=null) { //Manipulate Previous Interview's Last Question's Answer
-	        		answer.setAnswerTokens(tokens);
+	        		answer.setAnswerTokens(filterAnswerTokens(tokens));
     				interviewAnswers.add(answer);
 	        	}
 	        	interview.setAnswers(interviewAnswers);
@@ -195,13 +171,13 @@ public class HomeController {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
 	}
 	
 	/**
 	 * Parse A .xls File Given It's Path
 	 * @param file
 	 */
+	@SuppressWarnings({ "deprecation", "resource" })
 	private void parseXlsFile(File file) { //TODO Parse And Update Interview Entity's Fields
 		try {
 		    POIFSFileSystem fs = new POIFSFileSystem(new FileInputStream(file.toString()));
@@ -269,9 +245,7 @@ public class HomeController {
 		            	
 		            	System.out.print(interviewId+"\t"+addressId+"\t"+phone1+"\t"+phone2);
 		            	personService.persistPerson(person);
-		            	
-		            	
-		            	
+
 		            	//Persist Interviews
 		            	if(interviewService.countByAddressId(addressId)==0){
 		            		System.out.println("\nAddressId : "+addressId+" is NOT Storred");
@@ -289,7 +263,6 @@ public class HomeController {
 		            	else{
 		            		//AddressId Is More Than One Time, Cannot Match Interview With Person (phones)
 		            		System.out.println("AddressId : "+addressId+" is Storred 2 times");
-		            		
 		            	}
 		            }
 		        }
@@ -364,7 +337,6 @@ public class HomeController {
 	}
 	
 	/**
-	 * 
 	 * @param paragraph
 	 * @return
 	 */
@@ -378,38 +350,41 @@ public class HomeController {
 	    return result;
 	}
 	
-	/**
+	/*
 	 * If An Answer Has Tokens That Start With 'S' We Have To Check If All Answer Tokens Start
 	 * With 'S'. Any Token That Does Not Must Be Appended To The Previous' 'S' Token Text Value
-	 * @param initial
-	 * @return
 	 */
 	private Set<AnswerToken> filterAnswerTokens(Set<AnswerToken> initial) {
-		Set<AnswerToken> result = new LinkedHashSet<AnswerToken>();
-		Stack<AnswerToken> finalTokens = new Stack<AnswerToken>(); //You Need The Push / Pop Functionality
 		int counter = 0;
 		boolean specialCase = false;
+		String pattern = "^[S]\\d{1,2}.*$";
+		Set<AnswerToken> result = new LinkedHashSet<AnswerToken>();
+		Stack<AnswerToken> finalTokens = new Stack<AnswerToken>(); //You Need The Push / Pop Functionality
 		Iterator<AnswerToken> iterator = initial.iterator(); 
 	    while(iterator.hasNext()) {
 	    	AnswerToken element = iterator.next();
-	    	if(counter==0 && element.getAnswerTokenText().matches("^[S]\\d{1,2}.*$")) { //The First Time Check If The Answers Are Starting With 'S'
+	    	if(counter==0 && element.getAnswerTokenText().matches(pattern)) { //The First Time Check If The Answers Are Generally Starting With 'S'
 	    		specialCase = true;
 	    	}
-	    	if(specialCase && element.getAnswerTokenText().matches("^[S]\\d{1,2}.*$")) { //Token Starts With 'S'
+	    	if(specialCase && element.getAnswerTokenText().matches(pattern)) { //AnswerToken Starts With 'S'
 	    		finalTokens.push(element);
 	    	}
 	    	else {
 	    		if(specialCase) { //The Answers Start With 'S' But Not The AnswerToken, Append The Text To The Previous One
 	    			AnswerToken previous = finalTokens.pop();
 	    			String previousText = previous.getAnswerTokenText();
+	    			String previousSubAnswer = previous.getSubAnswer();
 	    			previous.setAnswerTokenText(previousText + " " + element.getAnswerTokenText());
+	    			if(previousSubAnswer!=null && !previousSubAnswer.isEmpty()) { //The Answer May Be Already Split To SubQuestion + SubAnswer 
+	    				previous.setSubAnswer(previousSubAnswer + " " + element.getAnswerTokenText());
+	    			}
 	    			finalTokens.push(previous);
 	    		}
 	    		else {
 	    			finalTokens.push(element);
 	    		}
 	    	}
-	    	counter++;
+	    	counter++; //Just For The First Loop
 	    }
 		/*
 		 * Convert The Stack To LinkedHashSet
