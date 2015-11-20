@@ -1,12 +1,13 @@
 package gr.documentParser.model;
 
+import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -36,8 +37,8 @@ public class Answer {
 	@JoinColumn(name = "questionId", nullable = false)
 	private Question question;
 	
-	@OneToMany(mappedBy = "answer", cascade = CascadeType.ALL)
-	private Set<AnswerToken> answerTokens = new LinkedHashSet<AnswerToken>();
+	@OneToMany(mappedBy = "answer", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	private List<AnswerToken> answerTokens = new ArrayList<AnswerToken>();
 	
 	@Temporal(TemporalType.TIMESTAMP)
 	@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -68,11 +69,11 @@ public class Answer {
 		this.question = question;
 	}
 	
-	public Set<AnswerToken> getAnswerTokens() {
+	public List<AnswerToken> getAnswerTokens() {
 		return answerTokens;
 	}
 	
-	public void setAnswerTokens(Set<AnswerToken> answerTokens) {
+	public void setAnswerTokens(List<AnswerToken> answerTokens) {
 		this.answerTokens = answerTokens;
 	}
 	

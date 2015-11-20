@@ -1,12 +1,13 @@
 package gr.documentParser.model;
 
+import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -16,6 +17,8 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -48,8 +51,9 @@ public class Interview {
 	@Column(name = "filename")
 	private String filename;
 	
-	@OneToMany(mappedBy = "interview", cascade = CascadeType.ALL)
-	private Set<Answer> answers = new LinkedHashSet<Answer>();
+	@Fetch(FetchMode.SELECT)
+	@OneToMany(mappedBy = "interview", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	private List<Answer> answers = new ArrayList<Answer>();
 	
 	@Temporal(TemporalType.TIMESTAMP)
 	@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -104,11 +108,11 @@ public class Interview {
 		this.filename = filename;
 	}
 
-	public Set<Answer> getAnswers() {
+	public List<Answer> getAnswers() {
 		return answers;
 	}
 	
-	public void setAnswers(Set<Answer> answers) {
+	public void setAnswers(List<Answer> answers) {
 		this.answers = answers;
 	}
 	

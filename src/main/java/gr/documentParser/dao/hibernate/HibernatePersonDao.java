@@ -18,7 +18,6 @@ public class HibernatePersonDao extends AbstractHibernateDao<Person> implements 
 	@Override
 	public void persistPerson(Person person) {
 		persist(person);
-		
 	}
 
 	@Override

@@ -8,6 +8,12 @@ import gr.documentParser.model.Interview;
 public interface InterviewDao extends AbstractDao<Interview> {
 
 	void persistInterviews(Set<Interview> interviews);
+
+	List<Interview> getAll(int maxInterviews);
+	
+	List<Interview> getAll(int maxInterviews, int offset);
+
+	Interview getInterview(Long id);
 	
 	Interview getByInterviewId(Long interviewId);
 	

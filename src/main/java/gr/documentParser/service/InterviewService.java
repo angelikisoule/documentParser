@@ -9,9 +9,15 @@ public interface InterviewService {
 
 	void persistInterviews(Set<Interview> interviews);
 	
+	List<Interview> getInterviews(int maxInterviews, int offset);
+	
+	Interview getInterview(Long id);
+	
 	Interview getByInterviewId(Long interviewId);
 	
 	Interview getByAddressId(Long addressId);
+	
+	Long countInterviews();
 	
 	Long countByAddressId(Long addressId);
 	

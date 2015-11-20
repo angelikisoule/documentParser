@@ -13,6 +13,25 @@ import gr.documentParser.model.Interview;
 public class HibernateInterviewDao extends AbstractHibernateDao<Interview> implements InterviewDao {
 
 	@Override
+	public List<Interview> getAll(int maxInterviews) {
+		return getAll(maxInterviews, 0);
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<Interview> getAll(int maxInterviews, int offset) {
+		Query query = getSession().createQuery("FROM Interview interviews");
+		query.setFirstResult(offset);
+		query.setMaxResults(maxInterviews);
+		return (List<Interview>) query.list();
+	}
+	
+	@Override
+	public Interview getInterview(Long id) {
+		return get(id);
+	}
+	
+	@Override
 	public Interview getByInterviewId(Long interviewId) {
 		Query query = getSession().createQuery("SELECT interview FROM Interview interview WHERE interviewId=:interviewId");
 		query.setParameter("interviewId", interviewId);
@@ -55,6 +74,7 @@ public class HibernateInterviewDao extends AbstractHibernateDao<Interview> imple
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public List<Interview> getByFilename(String filename) {
 		Query query = getSession().createQuery("SELECT interviews FROM Interview interviews WHERE filename=:filename");
 		query.setParameter("filename", filename);

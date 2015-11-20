@@ -6,10 +6,11 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Locale;
+import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 import java.util.regex.Matcher;
@@ -42,6 +43,7 @@ import gr.documentParser.service.StatsService;
 @Controller
 public class HomeController {
 	
+	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(HomeController.class);
 	
 	@Inject private InterviewService interviewService;
@@ -49,13 +51,15 @@ public class HomeController {
 	@Inject private PersonService personService;
 	@Inject private StatsService statsService;
 	
+	public static final String[] S_QUESTIONS = new String[] { "Q60", "Q73", "Q75", "Q76", "Q78", "Q83", "Q86", "Q89" };
+	
 	@RequestMapping(value = "/", method = RequestMethod.GET)
-	public String home(Locale locale, Model model) {
+	public String home(Model model) {
 		return "home";
 	}
 
 	@RequestMapping(value = "/parseTxt", method = RequestMethod.GET)
-	public String parseTxt(Locale locale, Model model) throws UnsupportedEncodingException {
+	public String parseTxt(Model model) throws UnsupportedEncodingException {
 		final File folder = new File("/home/blixabargeld/Desktop/test/");
 		for(final File fileEntry : folder.listFiles()) {
 	        if (fileEntry.isDirectory()) {
@@ -72,7 +76,7 @@ public class HomeController {
 	}
 
 	@RequestMapping(value = "/parseXls", method = RequestMethod.GET)
-	public String parseXls(Locale locale, Model model) {
+	public String parseXls(Model model) {
 		final File folder = new File("/home/angeliki/Downloads/documentParser/xls/telephones-renamed/");
 		for (final File fileEntry : folder.listFiles()) {
 			if (fileEntry.isDirectory()) {
@@ -95,19 +99,18 @@ public class HomeController {
 			BufferedReader br = new BufferedReader(new FileReader(file.toString()));
 			Set<Interview> parsed = new HashSet<Interview>();
 	        Interview interview = null;
-	        Set<Answer> interviewAnswers = null;
+	        List<Answer> interviewAnswers = null;
 	        Question question = null;
 	        Answer answer = null;
-	        Set<AnswerToken> tokens = null;
-	        StringBuilder answerText = null;
+	        List<AnswerToken> tokens = null;
 	        Long interviewCounter = 0L;
 			
 	        Stats stats = new Stats();
 			stats.setFilename(file.getName());
 			stats.setType("txt");
-	        
+			
 			String paragraph;
-			while ((paragraph = br.readLine()) != null) {
+			while((paragraph = br.readLine()) != null) {
 				String p = paragraph.trim();
 				if(p!=null && !p.isEmpty() && p.trim().length()!=0) { //Skip Empty Lines
 	        		System.out.println(p);
@@ -123,7 +126,7 @@ public class HomeController {
 	        			}
 	        			//Proceed With The Next Interview
 	        			interview = new Interview();
-	        			interviewAnswers = new LinkedHashSet<Answer>();
+	        			interviewAnswers = new ArrayList<Answer>();
 	        			interview.setInterviewId(extractInterviewId(p));
 	        			interview.setFilename(file.getName());
 	        			question = null;
@@ -137,7 +140,7 @@ public class HomeController {
 	        			//Proceed With The Next Question
 	        			question = new Question();
 	        			answer = new Answer();
-	        			tokens = new LinkedHashSet<AnswerToken>();
+	        			tokens = new ArrayList<AnswerToken>();
 	        			
 	        			String questionCode = getQuestionCode(p);
 	        			if(questionCode!=null) { //It Can't Be Null, The Same regex Got You In This if-else Branch
@@ -152,14 +155,13 @@ public class HomeController {
 	        			System.out.println(getLast(p,2));
 	        			stats.setElements(Long.valueOf(getLast(p,1)));
 	        			stats.setTotalElements(Long.valueOf(getLast(p,2)));
-	        			
 	        		}
 	        		else { //Answer
 	        			AnswerToken token = new AnswerToken();
 	        			token.setAnswer(answer);
 	        			token.setAnswerTokenText(p);
-	        			if(answer.getQuestion().getQuestionCode().equals("Q60")) {
-	        				String[] sub = q60(p);
+	        			if(Arrays.asList(S_QUESTIONS).contains(answer.getQuestion().getQuestionCode())) {
+	        				String[] sub = splitQuestionS(p);
 	        				if(sub!=null) {
 	        					token.setSubQuestion(sub[0].trim());
 	        					token.setSubAnswer(sub[1]);
@@ -189,8 +191,9 @@ public class HomeController {
 	        interviewService.persistInterviews(parsed);
 			br.close();
 
-		} catch (IOException e) {
-			e.printStackTrace();
+		}
+		catch(IOException exception) {
+			exception.printStackTrace();
 		}
 	}
 	
@@ -198,10 +201,11 @@ public class HomeController {
 	 * Parse A .xls File Given It's Path
 	 * @param file
 	 */
+	@SuppressWarnings("deprecation")
 	private void parseXlsFile(File file) { //TODO Parse And Update Interview Entity's Fields
 		try {
 		    POIFSFileSystem fs = new POIFSFileSystem(new FileInputStream(file.toString()));
-		    HSSFWorkbook wb = new HSSFWorkbook(fs);
+		    HSSFWorkbook wb = new HSSFWorkbook(fs); //TODO Resource Leak / Close It
 		    HSSFSheet sheet = wb.getSheetAt(0);
 		    HSSFRow row;
 		    HSSFCell cell1;
@@ -283,7 +287,7 @@ public class HomeController {
 		            		inter.setPhone2(phone2);
 		            		compliteInterviews.add(inter);
 		            	}
-		            	else{
+		            	else {
 		            		//AddressId Is More Than One Time, Cannot Match Interview With Person (phones)
 		            		System.out.println("AddressId : "+addressId+" is Storred 2 times");
 		            	}
@@ -292,7 +296,8 @@ public class HomeController {
 		        System.out.print("\n");
 		    }
 		    interviewService.persistInterviews(compliteInterviews);
-		} catch(Exception ioe) {
+		}
+		catch(Exception ioe) {
 		    ioe.printStackTrace();
 		}
 	}
@@ -348,7 +353,6 @@ public class HomeController {
 	    return result;
 	}
 	
-	
 	private boolean isLast(String p) {
 		Pattern pattern = Pattern.compile("^(\\d{1,3}) interviews displayed out of (\\d{1,4}) interviews.$"); //X, C or Q Followed By Numbers
 	    Matcher matcher = pattern.matcher(p);
@@ -360,7 +364,6 @@ public class HomeController {
 	    }
 	}
 	
-	
 	private String getLast(String p, int i) {
 		String result = null;
 		Pattern pattern = Pattern.compile("^(\\d{1,3}) interviews displayed out of (\\d{1,4}) interviews.$"); //X, C or Q Followed By Numbers
@@ -370,7 +373,6 @@ public class HomeController {
 	    }
 	    return result;
 	}
-	
 	
 	public void listFilesForFolder(final File folder) {
 	    for (final File fileEntry : folder.listFiles()) {
@@ -386,7 +388,7 @@ public class HomeController {
 	 * @param paragraph
 	 * @return
 	 */
-	private String[] q60(String paragraph) {
+	private String[] splitQuestionS(String paragraph) {
 		String[] result = null;
 		Pattern pattern = Pattern.compile("^(.*)(\\d{1,2}\\s+[(]\\d{1,2}[)].*)$"); 
 		Matcher matcher = pattern.matcher(paragraph);
@@ -400,11 +402,11 @@ public class HomeController {
 	 * If An Answer Has Tokens That Start With 'S' We Have To Check If All Answer Tokens Start
 	 * With 'S'. Any Token That Does Not Must Be Appended To The Previous' 'S' Token Text Value
 	 */
-	private Set<AnswerToken> filterAnswerTokens(Set<AnswerToken> initial) {
+	private List<AnswerToken> filterAnswerTokens(List<AnswerToken> initial) {
 		int counter = 0;
 		boolean specialCase = false;
 		String pattern = "^[S]\\d{1,2}.*$";
-		Set<AnswerToken> result = new LinkedHashSet<AnswerToken>();
+		List<AnswerToken> result = new ArrayList<AnswerToken>();
 		Stack<AnswerToken> finalTokens = new Stack<AnswerToken>(); //You Need The Push / Pop Functionality
 		Iterator<AnswerToken> iterator = initial.iterator(); 
 	    while(iterator.hasNext()) {

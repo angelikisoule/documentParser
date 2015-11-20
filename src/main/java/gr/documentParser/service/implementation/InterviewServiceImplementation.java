@@ -24,6 +24,16 @@ public class InterviewServiceImplementation implements InterviewService {
 	}
 
 	@Override
+	public List<Interview> getInterviews(int maxInterviews, int offset) {
+		return interviewDao.getAll(maxInterviews, offset);
+	}
+	
+	@Override
+	public Interview getInterview(Long id) {
+		return interviewDao.getInterview(id);
+	}
+	
+	@Override
 	public Interview getByInterviewId(Long interviewId) {
 		return interviewDao.getByInterviewId(interviewId);
 	}
@@ -33,6 +43,11 @@ public class InterviewServiceImplementation implements InterviewService {
 		return interviewDao.getByAddressId(addressId);
 	}
 
+	@Override
+	public Long countInterviews() {
+		return interviewDao.count();
+	}
+	
 	@Override
 	public Long countByAddressId(Long addressId) {
 		return interviewDao.countByAddressId(addressId);

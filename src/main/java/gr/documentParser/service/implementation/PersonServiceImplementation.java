@@ -1,7 +1,5 @@
 package gr.documentParser.service.implementation;
 
-import java.util.Set;
-
 import gr.documentParser.dao.PersonDao;
 import gr.documentParser.model.Person;
 import gr.documentParser.service.PersonService;
