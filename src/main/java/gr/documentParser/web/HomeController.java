@@ -113,7 +113,7 @@ public class HomeController {
 			while((paragraph = br.readLine()) != null) {
 				String p = paragraph.trim();
 				if(p!=null && !p.isEmpty() && p.trim().length()!=0) { //Skip Empty Lines
-	        		System.out.println(p);
+	        		//System.out.println(p);
 					if(p.startsWith("Interview")) {
 	        			if(interview!=null) {
 	        				if(answer!=null) { //Manipulate Previous Interview's Last Question's Answer
@@ -165,7 +165,7 @@ public class HomeController {
 	        				String[] sub = splitQuestionS(p);
 	        				if(sub!=null) {
 	        					token.setSubQuestion(sub[0].trim());
-	        					token.setSubAnswer(sub[1]);
+	        					token.setSubAnswer(sub[1].trim());
 	        				}
 	        			}
 	        			tokens.add(token);
@@ -392,7 +392,7 @@ public class HomeController {
 	 */
 	private String[] splitQuestionS(String paragraph) {
 		String[] result = null;
-		Pattern pattern = Pattern.compile("^(.*)(\\d{1,2}\\s+[(]\\d{1,2}[)].*)$"); 
+		Pattern pattern = Pattern.compile("^(.*)(\\s+\\d{1,2}\\s+[(]\\d{1,2}[)].*)$"); 
 		Matcher matcher = pattern.matcher(paragraph);
 	    if(matcher.matches()) {
 	    	result = new String[] { matcher.group(1), matcher.group(2)};
