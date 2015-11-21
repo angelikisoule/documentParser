@@ -39,6 +39,11 @@ public class HibernateInterviewDao extends AbstractHibernateDao<Interview> imple
 	}
 
 	@Override
+	public void persistInterview(Interview interview) {
+		interviewExists(interview); //Persist
+	}
+	
+	@Override
 	public void persistInterviews(Set<Interview> interviews) {
 		for(Interview interview : interviews) {
 			interviewExists(interview); //Persist

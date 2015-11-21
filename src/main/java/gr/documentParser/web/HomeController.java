@@ -97,7 +97,7 @@ public class HomeController {
 	private void parseTxtFile(File file) throws UnsupportedEncodingException {
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(file.toString()));
-			Set<Interview> parsed = new HashSet<Interview>();
+			//Set<Interview> parsed = new HashSet<Interview>();
 	        Interview interview = null;
 	        List<Answer> interviewAnswers = null;
 	        Question question = null;
@@ -122,7 +122,8 @@ public class HomeController {
 		        			}
 	        				interview.setAnswers(interviewAnswers);
 	        				interviewCounter++;
-	        	        	parsed.add(interview);
+	        	        	//parsed.add(interview);
+	        				interviewService.persistInterview(interview);
 	        			}
 	        			//Proceed With The Next Interview
 	        			interview = new Interview();
@@ -184,11 +185,12 @@ public class HomeController {
     				interviewAnswers.add(answer);
 	        	}
 	        	interview.setAnswers(interviewAnswers);
-	        	parsed.add(interview);
+	        	//parsed.add(interview);
+	        	interviewService.persistInterview(interview);
 	        }
 	        stats.setCountElements(interviewCounter);
 	        statsService.persistStats(stats);
-	        interviewService.persistInterviews(parsed);
+	        //interviewService.persistInterviews(parsed);
 			br.close();
 
 		}

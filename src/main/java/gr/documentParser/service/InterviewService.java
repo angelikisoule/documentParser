@@ -7,6 +7,8 @@ import gr.documentParser.model.Interview;
 
 public interface InterviewService {
 
+	void persistInterview(Interview interview);
+	
 	void persistInterviews(Set<Interview> interviews);
 	
 	List<Interview> getInterviews(int maxInterviews, int offset);

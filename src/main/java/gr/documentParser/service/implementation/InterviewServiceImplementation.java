@@ -19,6 +19,11 @@ public class InterviewServiceImplementation implements InterviewService {
 	@Inject private InterviewDao interviewDao;
 	
 	@Override
+	public void persistInterview(Interview interview) {
+		interviewDao.persistInterview(interview);
+	}
+	
+	@Override
 	public void persistInterviews(Set<Interview> interviews) {
 		interviewDao.persistInterviews(interviews);
 	}
