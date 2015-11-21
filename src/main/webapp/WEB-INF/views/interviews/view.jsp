@@ -15,24 +15,16 @@
     <style>
     	strong {
     		display:inline-block;
-    		width:150px;
-    	}
-    	.question {
-    		display:block;
-    		font-size:20px;
-    		font-weight:bold;
+    		width:120px;
     	}
     	.subQuestion {
     		display:block;
-    		color:blue;
-    	}
-    	.answer {
-    		display:block;
+    		color:#337ab7;
     	}
     	.subAnswer {
     		display:block;
-    		padding-left:50px;
-    		color:red;
+    		padding-left:40px;
+    		color:#d9534f;
     	}
     </style>
 </head>
@@ -40,42 +32,50 @@
 	<div class="container-fluid">
 		<div class="row">
 			<div class="col-xs-12">
-				<h4><strong>Interview Id:</strong>${interview.interviewId}</h4>
-				<h4><strong>Address Id:</strong>${interview.addressId}</h4>
-				<h4>
-					<strong>Phone1:</strong>
-					<c:choose>
-						<c:when test="${not empty interview.phone1}">${interview.phone1}</c:when>
-						<c:otherwise>-</c:otherwise>
-					</c:choose>
-				</h4>
-				<h4>
-					<strong>Phone2:</strong>
-					<c:choose>
-						<c:when test="${not empty interview.phone2}">${interview.phone2}</c:when>
-						<c:otherwise>-</c:otherwise>
-					</c:choose>					
-				</h4>
-				<h4><strong>Filename:</strong>${interview.filename}</h4>
-				<c:forEach var="answer" items="${interview.answers}">
-					<span class="question">${answer.question.questionText}</span>
-					<c:forEach var="answerToken" items="${answer.answerTokens}">
+				<ul class="list-group">
+  					<li class="list-group-item"><strong>Interview Id:</strong>${interview.interviewId}</li>
+  					<li class="list-group-item"><strong>Address Id:</strong>${interview.addressId}</li>
+  					<li class="list-group-item">
+						<strong>Phone1:</strong>
 						<c:choose>
-							<c:when test="${not empty answerToken.subQuestion}">
-								<span class="subQuestion">
-									${answerToken.subQuestion}
-								</span>
-								<span class="subAnswer">
-									${answerToken.subAnswer}
-								</span>
-							</c:when>
-							<c:otherwise>
-								<span class="answer">
-									${answerToken.answerTokenText}
-								</span>
-							</c:otherwise>
+							<c:when test="${not empty interview.phone1}">${interview.phone1}</c:when>
+							<c:otherwise>-</c:otherwise>
 						</c:choose>
-					</c:forEach>
+  					</li>
+  					<li class="list-group-item">
+						<strong>Phone2:</strong>
+						<c:choose>
+							<c:when test="${not empty interview.phone2}">${interview.phone2}</c:when>
+							<c:otherwise>-</c:otherwise>
+						</c:choose>
+  					</li>
+  					<li class="list-group-item"><strong>Filename:</strong>${interview.filename}</li>
+				</ul>
+				<c:forEach var="answer" items="${interview.answers}">
+					<div class="panel panel-primary">
+  						<div class="panel-heading">
+    						<h3 class="panel-title">${answer.question.questionText}</h3>
+  						</div>
+  						<div class="panel-body">
+    						<c:forEach var="answerToken" items="${answer.answerTokens}">
+								<c:choose>
+									<c:when test="${not empty answerToken.subQuestion}">
+										<span class="subQuestion">
+											${answerToken.subQuestion}
+										</span>
+										<span class="subAnswer">
+											${answerToken.subAnswer}
+										</span>
+									</c:when>
+									<c:otherwise>
+										<div>
+											${answerToken.answerTokenText}
+										</div>
+									</c:otherwise>
+								</c:choose>
+							</c:forEach>
+  						</div>
+					</div>
 				</c:forEach>
 			</div>
 		</div>
