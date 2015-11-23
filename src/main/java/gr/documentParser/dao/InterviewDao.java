@@ -24,4 +24,8 @@ public interface InterviewDao extends AbstractDao<Interview> {
 	List<Interview> getByFilename(String filename);
 	
 	Long countByAddressId(Long addressId);
+	
+	void deleteByFilename(String filename);
+	
+	void mergeInterviews(List<Interview> interviews);
 }

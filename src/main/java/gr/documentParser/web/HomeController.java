@@ -60,15 +60,19 @@ public class HomeController {
 
 	@RequestMapping(value = "/parseTxt", method = RequestMethod.GET)
 	public String parseTxt(Model model) throws UnsupportedEncodingException {
-		final File folder = new File("/home/blixabargeld/Desktop/test/");
+		final File folder = new File("/Users/asoule/Documents/dataParser/txt-interviews/");
 		for(final File fileEntry : folder.listFiles()) {
 	        if (fileEntry.isDirectory()) {
 	            listFilesForFolder(fileEntry);
 	        } else {
 	            System.out.println(fileEntry.getName());
 	            if(!fileEntry.getName().startsWith(".") && fileEntry.getName().endsWith(".txt")){
-	            	if(interviewService.getByFilename(fileEntry.getName()).isEmpty()) //Don't Parse Same Files
+	            	if(statsService.getByFilename(fileEntry.getName())==null) //Don't Parse Same Files
 	            		parseTxtFile(fileEntry);
+	            	else if ( statsService.getByFilename(fileEntry.getName())==null && !interviewService.getByFilename(fileEntry.getName()).isEmpty() ) {
+	            		interviewService.deleteByFilename(fileEntry.getName());
+	            		parseTxtFile(fileEntry);
+	            	}
 	            }
 	        }
 	    }
@@ -77,7 +81,7 @@ public class HomeController {
 
 	@RequestMapping(value = "/parseXls", method = RequestMethod.GET)
 	public String parseXls(Model model) {
-		final File folder = new File("/home/angeliki/Downloads/documentParser/xls/telephones-renamed/");
+		final File folder = new File("/Users/asoule/Documents/dataParser/xls-phone-open/");
 		for (final File fileEntry : folder.listFiles()) {
 			if (fileEntry.isDirectory()) {
 				listFilesForFolder(fileEntry);
@@ -89,6 +93,13 @@ public class HomeController {
 		return "home";
 	}
 
+	@RequestMapping(value = "/deleteAllXls", method = RequestMethod.GET)
+	public String deleteAllXls(Model model){
+		statsService.deleteAllByType("xls");
+		personService.deleteAll();
+		return "home";
+	}
+	
 	/**
 	 * Parse A .rtf File Given It's Path
 	 * @param file The File To Parse
@@ -121,7 +132,6 @@ public class HomeController {
 	        					interviewAnswers.add(answer);
 		        			}
 	        				interview.setAnswers(interviewAnswers);
-	        				interviewCounter++;
 	        	        	//parsed.add(interview);
 	        				interviewService.persistInterview(interview);
 	        			}
@@ -132,6 +142,7 @@ public class HomeController {
 	        			interview.setFilename(file.getName());
 	        			question = null;
 	        			answer = null;
+	        			interviewCounter++;
 		        	}
 	        		else if(isQuestion(p)) { //Question
 	        			if(answer!=null) { //Manipulate Previous Question's Answer
@@ -185,6 +196,14 @@ public class HomeController {
     				interviewAnswers.add(answer);
 	        	}
 	        	interview.setAnswers(interviewAnswers);
+	        	
+	        	//Check If There Is Phones In Person Table
+	        	Person person = personService.getByAddressId(interview.getAddressId());
+	        	if(person!=null){
+	        		interview.setPhone1(person.getPhone1());
+	        		interview.setPhone2(person.getPhone2());
+	        	}
+	        	
 	        	//parsed.add(interview);
 	        	interviewService.persistInterview(interview);
 	        }
@@ -214,7 +233,8 @@ public class HomeController {
 		    HSSFCell cell2;
 		    HSSFCell cell3;
 		    HSSFCell cell4;
-		    Set<Interview> compliteInterviews = new HashSet<Interview>();
+		    List<Interview> compliteInterviews = new ArrayList<Interview>();
+		    List<Person> personsParsed = new ArrayList<Person>();
 		    Stats stats = new Stats();
 			stats.setFilename(file.getName());
 			stats.setType("xls");
@@ -254,11 +274,6 @@ public class HomeController {
 		            	Long x1= new Long((long)Double.parseDouble(cell2.toString()));
 		            	Long addressId= x1;
 		            	
-		            	//Check That AddressId Is Unique
-	        			if(personService.countAddressId(addressId)==0)
-	        				System.out.println("AddressId : "+addressId+" DOES NOT EXIST");
-	        			else
-	        				System.out.println("AddressId : "+addressId+" ALREADY EXISTS");
 
 		            	person.setAddressid(addressId);
 		            		
@@ -272,18 +287,32 @@ public class HomeController {
 
 		            	person.setFilename(file.getName());
 		            	
-		            	System.out.print(interviewId+"\t"+addressId+"\t"+phone1+"\t"+phone2);
-		            	personService.persistPerson(person);
+		            	//Check That AddressId Is Unique
+		            	if(personService.countAddressId(addressId)==0){
+//		            		System.out.println("AddressId : "+addressId+" DOES NOT EXIST");
+		            	}
+		            	else{
+//		            		System.out.println("AddressId : "+addressId+" ALREADY EXISTS");
+		            		if(personService.getByAddressId(addressId).getPhone1()==phone1 && personService.getByAddressId(addressId).getPhone2()==phone2){
+		            			System.out.println("AddressId : "+addressId+" ALREADY EXISTS WITH THE SAME PHONES");
+		            		}
+		            		else{
+		            			
+		            		}
+		            			
+		            	}
+		            	personsParsed.add(person);
+	//	            	System.out.print(interviewId+"\t"+addressId+"\t"+phone1+"\t"+phone2);
 
 		            	//Persist Interviews
 		            	if(interviewService.countByAddressId(addressId)==0){
-		            		System.out.println("\nAddressId : "+addressId+" is NOT Storred");
+		            		//System.out.println("\nAddressId : "+addressId+" is NOT Storred");
 		            		//DO Nothing, Wait Other Parser To Store New Interview Files
 
 		            	}
 		            	else if(interviewService.countByAddressId(addressId)==1){
 		            		//Perist Existing Interview
-		            		System.out.println("AddressId : "+addressId+" is Storred");
+		            		//System.out.println("AddressId : "+addressId+" is Storred");
 		            		Interview inter = interviewService.getByAddressId(addressId);
 		            		inter.setPhone1(phone1);
 		            		inter.setPhone2(phone2);
@@ -291,13 +320,17 @@ public class HomeController {
 		            	}
 		            	else {
 		            		//AddressId Is More Than One Time, Cannot Match Interview With Person (phones)
-		            		System.out.println("AddressId : "+addressId+" is Storred 2 times");
+		            		//System.out.println("AddressId : "+addressId+" is Storred 2 times");
 		            	}
 		            }
 		        }
-		        System.out.print("\n");
+		        //System.out.print("\n");
 		    }
-		    interviewService.persistInterviews(compliteInterviews);
+		    personService.persistPersons(personsParsed);
+		    interviewService.mergeInterviews(compliteInterviews);
+		    stats.setCountElements(new Long(rows));
+		    stats.setTotalElements(null);
+		    statsService.persistStats(stats);
 		}
 		catch(Exception ioe) {
 		    ioe.printStackTrace();

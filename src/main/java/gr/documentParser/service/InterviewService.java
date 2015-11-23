@@ -24,4 +24,8 @@ public interface InterviewService {
 	Long countByAddressId(Long addressId);
 	
 	List<Interview> getByFilename(String filename);
+	
+	void deleteByFilename(String filename);
+	
+	void mergeInterviews(List<Interview> interviews);
 }

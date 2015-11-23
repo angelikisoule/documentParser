@@ -62,4 +62,14 @@ public class InterviewServiceImplementation implements InterviewService {
 	public List<Interview> getByFilename(String filename) {
 		return interviewDao.getByFilename(filename);
 	}
+
+	@Override
+	public void deleteByFilename(String filename) {
+		interviewDao.deleteByFilename(filename);
+	}
+
+	@Override
+	public void mergeInterviews(List<Interview> interviews) {
+		interviewDao.mergeInterviews(interviews);
+	}
 }

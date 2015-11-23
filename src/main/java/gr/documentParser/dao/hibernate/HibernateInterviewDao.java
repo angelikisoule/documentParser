@@ -85,4 +85,20 @@ public class HibernateInterviewDao extends AbstractHibernateDao<Interview> imple
 		query.setParameter("filename", filename);
 		return (List<Interview>) query.list();
 	}
+
+	@Override
+	public void deleteByFilename(String filename) {
+		List<Interview> interviews = getByFilename(filename);
+		for (Interview interview : interviews) {
+			delete(interview);
+		}
+	}
+
+	@Override
+	public void mergeInterviews(List<Interview> interviews) {
+		for (Interview interview : interviews) {
+			merge(interview);
+		}
+	}
+	
 }
