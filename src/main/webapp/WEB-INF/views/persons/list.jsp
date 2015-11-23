@@ -28,31 +28,31 @@
 								<th>Phone1</th>
 								<th>Phone2</th>
 								<th>Filename</th>
-								<th>Date Updated</th>
+<!-- 								<th>Date Updated</th> -->
 								<th>&nbsp;</th>
 							</tr>
 						</thead>
 						<tbody>
-							<c:forEach items="${interviews}" var="interview">
+							<c:forEach items="${persons}" var="person">
 								<tr>
-									<td>${interview.interviewId}</td>
-									<td>${interview.addressId}</td>
+									<td>${person.interviewId}</td>
+									<td>${person.addressId}</td>
 									<td>
 										<c:choose>
-											<c:when test="${not empty interview.phone1}">${interview.phone1}</c:when>
+											<c:when test="${not empty person.phone1}">${person.phone1}</c:when>
 											<c:otherwise>-</c:otherwise>
 										</c:choose>
 									</td>
 									<td>
 										<c:choose>
-											<c:when test="${not empty interview.phone2}">${interview.phone2}</c:when>
+											<c:when test="${not empty person.phone2}">${person.phone2}</c:when>
 											<c:otherwise>-</c:otherwise>
 										</c:choose>									
 									</td>
-									<td>${interview.filename}</td>
-									<td><spring:eval expression="interview.dateUpdated" /></td>
+									<td>${person.filename}</td>
+<%-- 									<td><spring:eval expression="interview.dateUpdated" /></td> --%>
 									<td>
-										<a href="<c:url value='/interviews/interview/${interview.id}' />" title="View"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
+										<a href="<c:url value='/persons/person/${person.id}' />" title="View"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
 									</td>
 								</tr>
 							</c:forEach>

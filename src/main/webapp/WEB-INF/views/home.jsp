@@ -14,16 +14,7 @@
     <![endif]-->
 </head>
 <body>
-	<div class="container-fluid">
-		<div class="row">
-			<div class="col-xs-12">
-				<a href="<c:url value="/interviews/list"/>" class="btn btn-default btn-lg" role="button">List Of Interviews</a>
-				<a href="<c:url value="/parseTxt"/>" class="btn btn-warning btn-lg" role="button">Parse .txt Files</a>
-				<a href="<c:url value="/parseXls"/>" class="btn btn-primary btn-lg" role="button">Parse .xls Files</a>
-				<a href="<c:url value="/deleteAllXls"/>" class="btn btn-danger btn-lg" role="button">Delete .xls Files</a>
-			</div>
-		</div>
-	</div>	
+	<jsp:include page="./menu.jsp" />
 	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->

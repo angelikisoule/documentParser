@@ -34,50 +34,24 @@
 		<div class="row">
 			<div class="col-xs-12">
 				<ul class="list-group">
-  					<li class="list-group-item"><strong>Interview Id:</strong>${interview.interviewId}</li>
-  					<li class="list-group-item"><strong>Address Id:</strong>${interview.addressId}</li>
+  					<li class="list-group-item"><strong>person Id:</strong>${person.id}</li>
+  					<li class="list-group-item"><strong>Address Id:</strong>${person.addressId}</li>
   					<li class="list-group-item">
 						<strong>Phone1:</strong>
 						<c:choose>
-							<c:when test="${not empty interview.phone1}">${interview.phone1}</c:when>
+							<c:when test="${not empty person.phone1}">${person.phone1}</c:when>
 							<c:otherwise>-</c:otherwise>
 						</c:choose>
   					</li>
   					<li class="list-group-item">
 						<strong>Phone2:</strong>
 						<c:choose>
-							<c:when test="${not empty interview.phone2}">${interview.phone2}</c:when>
+							<c:when test="${not empty person.phone2}">${person.phone2}</c:when>
 							<c:otherwise>-</c:otherwise>
 						</c:choose>
   					</li>
-  					<li class="list-group-item"><strong>Filename:</strong>${interview.filename}</li>
+  					<li class="list-group-item"><strong>Filename:</strong>${person.filename}</li>
 				</ul>
-				<c:forEach var="answer" items="${interview.answers}">
-					<div class="panel panel-primary">
-  						<div class="panel-heading">
-    						<h3 class="panel-title">${answer.question.questionText}</h3>
-  						</div>
-  						<div class="panel-body">
-    						<c:forEach var="answerToken" items="${answer.answerTokens}">
-								<c:choose>
-									<c:when test="${not empty answerToken.subQuestion}">
-										<span class="subQuestion">
-											${answerToken.subQuestion}
-										</span>
-										<span class="subAnswer">
-											${answerToken.subAnswer}
-										</span>
-									</c:when>
-									<c:otherwise>
-										<div>
-											${answerToken.answerTokenText}
-										</div>
-									</c:otherwise>
-								</c:choose>
-							</c:forEach>
-  						</div>
-					</div>
-				</c:forEach>
 			</div>
 		</div>
 	</div>	

@@ -24,6 +24,7 @@ import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.hibernate.jpa.criteria.predicate.IsEmptyPredicate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -60,16 +61,18 @@ public class HomeController {
 
 	@RequestMapping(value = "/parseTxt", method = RequestMethod.GET)
 	public String parseTxt(Model model) throws UnsupportedEncodingException {
-		final File folder = new File("/Users/asoule/Documents/dataParser/txt-interviews/");
+		final File folder = new File("/home/angeliki/Downloads/documentParser/rtf/txt-interviews/"); ///Users/asoule/Documents/dataParser/txt-interviews/
 		for(final File fileEntry : folder.listFiles()) {
 	        if (fileEntry.isDirectory()) {
 	            listFilesForFolder(fileEntry);
 	        } else {
 	            System.out.println(fileEntry.getName());
 	            if(!fileEntry.getName().startsWith(".") && fileEntry.getName().endsWith(".txt")){
-	            	if(statsService.getByFilename(fileEntry.getName())==null) //Don't Parse Same Files
+	            	Stats stats = statsService.getByFilename(fileEntry.getName());
+	            	List <Interview> inters = interviewService.getByFilename(fileEntry.getName());
+	            	if( stats==null && inters.isEmpty()) //Don't Parse Same Files
 	            		parseTxtFile(fileEntry);
-	            	else if ( statsService.getByFilename(fileEntry.getName())==null && !interviewService.getByFilename(fileEntry.getName()).isEmpty() ) {
+	            	else if ( stats==null && !inters.isEmpty()) {
 	            		interviewService.deleteByFilename(fileEntry.getName());
 	            		parseTxtFile(fileEntry);
 	            	}
@@ -81,13 +84,22 @@ public class HomeController {
 
 	@RequestMapping(value = "/parseXls", method = RequestMethod.GET)
 	public String parseXls(Model model) {
-		final File folder = new File("/Users/asoule/Documents/dataParser/xls-phone-open/");
+		final File folder = new File("/home/angeliki/Downloads/documentParser/xls/telephones-renamed/"); ///Users/asoule/Documents/dataParser/xls-phone-open/
 		for (final File fileEntry : folder.listFiles()) {
 			if (fileEntry.isDirectory()) {
 				listFilesForFolder(fileEntry);
 			} else {
 				System.out.println(fileEntry.getName());
-				parseXlsFile(fileEntry);
+				if(!fileEntry.getName().startsWith(".") && fileEntry.getName().endsWith(".xls")){
+					Stats stats = statsService.getByFilename(fileEntry.getName());
+					List<Person> pers = personService.getByFilename(fileEntry.getName());
+					if( stats==null && pers.isEmpty() )
+						parseXlsFile(fileEntry);
+					else if( stats==null && !pers.isEmpty() ){
+						personService.deleteByFilename(fileEntry.getName());
+						parseXlsFile(fileEntry);
+					}
+				}
 			}
 		}
 		return "home";
@@ -132,7 +144,7 @@ public class HomeController {
 	        					interviewAnswers.add(answer);
 		        			}
 	        				interview.setAnswers(interviewAnswers);
-	        	        	//parsed.add(interview);
+	        				setPhones(interview);
 	        				interviewService.persistInterview(interview);
 	        			}
 	        			//Proceed With The Next Interview
@@ -181,8 +193,13 @@ public class HomeController {
 	        			}
 	        			tokens.add(token);
 	        			if(token.getAnswer().getQuestion().getQuestionCode().equals("X2")) {
-	        				Long x = Long.parseLong(p);
-	        				interview.setAddressId(x);
+	        				try{
+	        					Long x = Long.parseLong(p);
+	        					interview.setAddressId(x);
+	        				}catch(NumberFormatException e){
+	        					Long x = new Long(-1); //Godspeed
+	        					interview.setAddressId(x);
+	        				}
 	        			}
 	        		}
 				}
@@ -198,18 +215,12 @@ public class HomeController {
 	        	interview.setAnswers(interviewAnswers);
 	        	
 	        	//Check If There Is Phones In Person Table
-	        	Person person = personService.getByAddressId(interview.getAddressId());
-	        	if(person!=null){
-	        		interview.setPhone1(person.getPhone1());
-	        		interview.setPhone2(person.getPhone2());
-	        	}
-	        	
-	        	//parsed.add(interview);
+	        	setPhones(interview);
+	        	System.out.println("Persist 2");
 	        	interviewService.persistInterview(interview);
 	        }
 	        stats.setCountElements(interviewCounter);
 	        statsService.persistStats(stats);
-	        //interviewService.persistInterviews(parsed);
 			br.close();
 
 		}
@@ -269,7 +280,7 @@ public class HomeController {
 		            	Long interviewId= new Long((long)Double.parseDouble(cell1.toString()));
 		            	Person person = new Person();
 		            		
-		            	person.setInterviewId(interviewId.toString());
+		            	person.setInterviewId(interviewId);
 		            	
 		            	Long x1= new Long((long)Double.parseDouble(cell2.toString()));
 		            	Long addressId= x1;
@@ -328,13 +339,23 @@ public class HomeController {
 		    }
 		    personService.persistPersons(personsParsed);
 		    interviewService.mergeInterviews(compliteInterviews);
-		    stats.setCountElements(new Long(rows));
+		    stats.setCountElements(new Long(rows-1));
 		    stats.setTotalElements(null);
 		    statsService.persistStats(stats);
 		}
 		catch(Exception ioe) {
 		    ioe.printStackTrace();
 		}
+	}
+	
+	@RequestMapping(value = "/mergeFiles", method = RequestMethod.GET)
+	private String mergeFiles(Model model){
+		List<Interview> interviews = interviewService.getNullPhones();
+		for (Interview interview : interviews) {
+			setPhones(interview);
+			interviewService.merge(interview);
+		}
+		return "home";
 	}
 	
 	/**
@@ -476,5 +497,19 @@ public class HomeController {
 			result.add(token);
 		}
 		return result;
+	}
+	
+	void setPhones(Interview interview){
+		Long addressId = interview.getAddressId();
+		Person person = personService.getByAddressId(addressId);
+		if(person!=null){
+			if(!person.getInterviewId().equals(interview.getInterviewId()))
+				System.out.println("Merge interview with addressId : "+addressId+" But Different Interview Ids. Person interviewId : "+person.getInterviewId()+" Interview interviewId : "+interview.getInterviewId());
+			interview.setPhone1(person.getPhone1());
+			interview.setPhone2(person.getPhone2());
+		}
+		else{
+			System.out.println("These Is No AddressId "+addressId+" In Person Tables");
+		}
 	}
 }

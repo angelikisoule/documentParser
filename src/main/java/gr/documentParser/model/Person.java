@@ -24,11 +24,11 @@ public class Person {
 	private String phone2;
 	
 	@Column(name = "addressId")
-	private Long addressid;
+	private Long addressId;
 	
 	
 	@Column(name = "interviewId")
-	private String interviewId;
+	private Long interviewId;
 
 	@Column(name = "filename")
 	private String filename;
@@ -44,22 +44,22 @@ public class Person {
 	}
 
 
-	public Long getAddressid() {
-		return addressid;
+	public Long getAddressId() {
+		return addressId;
 	}
 
 
-	public void setAddressid(Long addressid) {
-		this.addressid = addressid;
+	public void setAddressid(Long addressId) {
+		this.addressId = addressId;
 	}
 
 
-	public String getInterviewId() {
+	public Long getInterviewId() {
 		return interviewId;
 	}
 
 
-	public void setInterviewId(String interviewId) {
+	public void setInterviewId(Long interviewId) {
 		this.interviewId = interviewId;
 	}
 

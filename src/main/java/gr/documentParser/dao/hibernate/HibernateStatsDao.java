@@ -3,6 +3,7 @@ package gr.documentParser.dao.hibernate;
 import java.util.List;
 
 import gr.documentParser.dao.StatsDao;
+import gr.documentParser.model.Person;
 import gr.documentParser.model.Stats;
 
 import org.hibernate.Query;
@@ -36,6 +37,20 @@ public class HibernateStatsDao  extends AbstractHibernateDao<Stats> implements S
 		for (Stats stats : allStats) {
 			delete(stats);
 		}
+	}
+
+	@Override
+	public Long countStats() {
+		Query query = getSession().createQuery("SELECT COUNT(stats) FROM Stats stats");
+		return (Long) query.uniqueResult();
+	}
+
+	@Override
+	public List<Stats> getAllStats(int maxStats, int offset) {
+		Query query = getSession().createQuery("FROM Stats stats");
+		query.setFirstResult(offset);
+		query.setMaxResults(maxStats);
+		return (List<Stats>) query.list();
 	}
 
 }

@@ -3,6 +3,7 @@ package gr.documentParser.dao.hibernate;
 import java.util.List;
 
 import gr.documentParser.dao.PersonDao;
+import gr.documentParser.model.Interview;
 import gr.documentParser.model.Person;
 
 import org.hibernate.Query;
@@ -38,7 +39,38 @@ public class HibernatePersonDao extends AbstractHibernateDao<Person> implements 
 			delete(person);
 		}
 	}
-	
-	
-	
+
+	@Override
+	public List<Person> getByFilename(String filename) {
+		Query query = getSession().createQuery("SELECT persons FROM Person persons WHERE filename=:filename");
+		query.setParameter("filename", filename);
+		return (List<Person>) query.list();
+	}
+
+	@Override
+	public void deleteByFilename(String filename) {
+		List<Person> persons = getByFilename(filename);
+		for (Person person : persons) {
+			delete(person);
+		}
+	}
+
+	@Override
+	public Long countPersons() {
+		Query query = getSession().createQuery("SELECT COUNT(*) FROM Person persons");
+		return (Long) query.uniqueResult();
+	}
+
+	@Override
+	public Person getPerson(Long id) {
+		return get(id);
+	}
+
+	@Override
+	public List<Person> getPersons(int maxPersons, int offset) {
+		Query query = getSession().createQuery("FROM Person persons");
+		query.setFirstResult(offset);
+		query.setMaxResults(maxPersons);
+		return (List<Person>) query.list();
+	}
 }

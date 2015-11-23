@@ -56,7 +56,7 @@ public class HibernateInterviewDao extends AbstractHibernateDao<Interview> imple
 	protected void interviewExists(Interview interview) {
 		Interview existing = getByAddressId(interview.getAddressId());
 		if(existing!=null) {
-			System.out.println("Interview with Id "+interview.getId()+" and interviewId "+interview.getInterviewId()+" is already exists.");
+			System.out.println("Interview with Id "+existing.getId()+" and interviewId "+interview.getInterviewId()+" and addressId "+interview.getAddressId()+" is already exists.");
 			return; //TODO It Would Be Better To Merge With The New Data
 		}
 		else {
@@ -99,6 +99,12 @@ public class HibernateInterviewDao extends AbstractHibernateDao<Interview> imple
 		for (Interview interview : interviews) {
 			merge(interview);
 		}
+	}
+
+	@Override
+	public List<Interview> getNullPhones() {
+		Query query = getSession().createQuery("SELECT interviews FROM Interview interviews WHERE phone1=null OR phone2=null");
+		return (List<Interview>) query.list();
 	}
 	
 }

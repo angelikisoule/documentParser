@@ -13,4 +13,14 @@ public interface PersonService {
 	Long countAddressId(Long addressId);
 	
 	void deleteAll();
+	
+	List<Person> getByFilename(String filename);
+	
+	void deleteByFilename(String filename);
+	
+	Long countPersons();
+	
+	Person getPerson(Long id);
+	
+	List<Person> getPersons(int maxPersons, int offset);
 }

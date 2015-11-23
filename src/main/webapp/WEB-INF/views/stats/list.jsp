@@ -23,37 +23,33 @@
 					<table class="table table-striped">
 						<thead>
 							<tr>
-								<th>InterviewId</th>
-								<th>AddressId</th>
-								<th>Phone1</th>
-								<th>Phone2</th>
+								<th>Id</th>
+								<th>Count Elements</th>
+								<th>Stored Elements</th>
 								<th>Filename</th>
-								<th>Date Updated</th>
-								<th>&nbsp;</th>
+								<th>Total Elements</th>
+								<th>Type</th>
 							</tr>
 						</thead>
 						<tbody>
-							<c:forEach items="${interviews}" var="interview">
+							<c:forEach items="${allStats}" var="stats">
 								<tr>
-									<td>${interview.interviewId}</td>
-									<td>${interview.addressId}</td>
+									<td>${stats.id}</td>
+									<td>${stats.countElements}</td>
 									<td>
 										<c:choose>
-											<c:when test="${not empty interview.phone1}">${interview.phone1}</c:when>
+											<c:when test="${not empty stats.elements}">${stats.elements}</c:when>
 											<c:otherwise>-</c:otherwise>
 										</c:choose>
 									</td>
+									<td>${stats.filename}</td>
 									<td>
 										<c:choose>
-											<c:when test="${not empty interview.phone2}">${interview.phone2}</c:when>
+											<c:when test="${not empty stats.totalElements}">${stats.totalElements}</c:when>
 											<c:otherwise>-</c:otherwise>
 										</c:choose>									
 									</td>
-									<td>${interview.filename}</td>
-									<td><spring:eval expression="interview.dateUpdated" /></td>
-									<td>
-										<a href="<c:url value='/interviews/interview/${interview.id}' />" title="View"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
-									</td>
+									<td>${stats.type}</td>
 								</tr>
 							</c:forEach>
 						</tbody>

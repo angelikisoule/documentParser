@@ -13,5 +13,9 @@ public interface StatsService {
 	void deleteAllByType(String type);
 	
 	public List<Stats> getAllByType(String type);
+	
+	Long countStats();
+	
+	List<Stats> getAllStats(int maxStats, int offset);
 
 }

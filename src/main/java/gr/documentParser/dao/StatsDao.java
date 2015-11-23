@@ -14,4 +14,8 @@ public interface StatsDao  extends AbstractDao<Stats> {
 	
 	public List<Stats> getAllByType(String type);
 	
+	Long countStats();
+	
+	List<Stats> getAllStats(int maxStats, int offset);
+	
 }

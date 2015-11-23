@@ -36,5 +36,15 @@ public class StatsServiceImplementation implements StatsService{
 	public List<Stats> getAllByType(String type) {
 		return statsDao.getAllByType(type);
 	}
+
+	@Override
+	public Long countStats() {
+		return statsDao.countStats();
+	}
+
+	@Override
+	public List<Stats> getAllStats(int maxStats, int offset) {
+		return statsDao.getAllStats(maxStats,offset);
+	}
 	
 }

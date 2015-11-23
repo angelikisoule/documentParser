@@ -72,4 +72,14 @@ public class InterviewServiceImplementation implements InterviewService {
 	public void mergeInterviews(List<Interview> interviews) {
 		interviewDao.mergeInterviews(interviews);
 	}
+
+	@Override
+	public List<Interview> getNullPhones() {
+		return interviewDao.getNullPhones();
+	}
+
+	@Override
+	public void merge(Interview interview) {
+		interviewDao.merge(interview);
+	}
 }

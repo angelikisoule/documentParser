@@ -28,4 +28,8 @@ public interface InterviewService {
 	void deleteByFilename(String filename);
 	
 	void mergeInterviews(List<Interview> interviews);
+	
+	List<Interview> getNullPhones();
+	
+	void merge(Interview interview);
 }

@@ -37,4 +37,29 @@ public class PersonServiceImplementation implements PersonService{
 	public void deleteAll() {
 		personDao.deleteAll();
 	}
+
+	@Override
+	public List<Person> getByFilename(String filename) {
+		return personDao.getByFilename(filename);
+	}
+
+	@Override
+	public void deleteByFilename(String filename) {
+		personDao.deleteByFilename(filename);
+	}
+
+	@Override
+	public Long countPersons() {
+		return personDao.countPersons();
+	}
+
+	@Override
+	public Person getPerson(Long id) {
+		return personDao.getPerson(id);
+	}
+
+	@Override
+	public List<Person> getPersons(int maxPersons, int offset) {
+		return personDao.getPersons(maxPersons, offset);
+	}
 }
