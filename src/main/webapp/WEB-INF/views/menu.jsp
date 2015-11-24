@@ -1,6 +1,6 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <div class="container-fluid">
-	<div class="row">
+	<div class="row" style="padding: 10px 0;">
 		<div class="col-xs-12">
 			<a href="/interviews/list"	class="btn btn-default btn-lg" role="button">List Of Interviews <b>${countInterviews}</b></a>
 			<a href="/persons/list" class="btn btn-default btn-lg" role="button">List Of Persons <b>${countPersons}</b></a> 
