@@ -31,9 +31,9 @@ public class AnswerToken {
 	@JoinColumn(name = "answerId", nullable = false)
 	private Answer answer;
 	
-	@Lob
 	@NotNull
 	@Column(name = "answerTokenText")
+	@Length(max=2000)
 	private String answerTokenText;
 	
 	@Length(min = 1, max = 1000)

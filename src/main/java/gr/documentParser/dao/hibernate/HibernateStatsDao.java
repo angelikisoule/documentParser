@@ -40,8 +40,9 @@ public class HibernateStatsDao  extends AbstractHibernateDao<Stats> implements S
 	}
 
 	@Override
-	public Long countStats() {
-		Query query = getSession().createQuery("SELECT COUNT(stats) FROM Stats stats");
+	public Long countByType(String type) {
+		Query query = getSession().createQuery("SELECT COUNT(stats) FROM Stats stats WHERE type=:type");
+		query.setParameter("type", type);
 		return (Long) query.uniqueResult();
 	}
 

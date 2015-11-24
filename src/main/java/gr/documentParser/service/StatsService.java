@@ -17,5 +17,7 @@ public interface StatsService {
 	Long countStats();
 	
 	List<Stats> getAllStats(int maxStats, int offset);
+	
+	Long countByType(String type);
 
 }

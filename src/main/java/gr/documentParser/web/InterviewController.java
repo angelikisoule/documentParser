@@ -5,18 +5,21 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import gr.documentParser.service.InterviewService;
+import gr.documentParser.service.PersonService;
 import gr.documentParser.utils.Pager;
 
 @Controller@RequestMapping(value = "/interviews")
 public class InterviewController {
 
 	@Inject private InterviewService interviewService;
+	@Inject private PersonService personService;
 	
 	@RequestMapping(value = "list", method = RequestMethod.GET)
 	public String list(@RequestParam(value = "page", required = false) Integer page, @RequestParam(value = "size", required = false) Integer size, Model model, HttpServletRequest request) {
@@ -38,4 +41,15 @@ public class InterviewController {
 		model.addAttribute("interview", interviewService.getInterview(id));
 		return "interviews/view";
 	}
+	
+	@ModelAttribute("countInterviews")
+	public Long countInterviews(){
+		return interviewService.countInterviews();
+	}
+	
+	@ModelAttribute("countPersons")
+	public Long countPersons(){
+		return personService.countPersons();
+	}
+
 }

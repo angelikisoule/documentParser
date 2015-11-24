@@ -17,6 +17,8 @@
 <body>
 	<jsp:include page="../menu.jsp" />
 	<div class="container-fluid">
+	<h4>Files txt : ${countTxt}</h4>
+	<h4>Files xls : ${countXls}</h4>
 		<div class="row">
 			<div class="col-xs-12">
 				<div class="table-responsive">

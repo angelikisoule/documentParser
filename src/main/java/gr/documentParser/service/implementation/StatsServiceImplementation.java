@@ -39,12 +39,17 @@ public class StatsServiceImplementation implements StatsService{
 
 	@Override
 	public Long countStats() {
-		return statsDao.countStats();
+		return statsDao.count();
 	}
 
 	@Override
 	public List<Stats> getAllStats(int maxStats, int offset) {
 		return statsDao.getAllStats(maxStats,offset);
 	}
-	
+
+	@Override
+	public Long countByType(String type) {
+		return statsDao.countByType(type);
+	}
+
 }

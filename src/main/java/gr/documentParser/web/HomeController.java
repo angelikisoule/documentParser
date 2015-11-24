@@ -27,6 +27,7 @@ import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.hibernate.jpa.criteria.predicate.IsEmptyPredicate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -511,5 +512,15 @@ public class HomeController {
 		else{
 			System.out.println("These Is No AddressId "+addressId+" In Person Tables");
 		}
+	}
+	
+	@ModelAttribute("countInterviews")
+	public Long countInterviews(){
+		return interviewService.countInterviews();
+	}
+	
+	@ModelAttribute("countPersons")
+	public Long countPersons(){
+		return personService.countPersons();
 	}
 }
