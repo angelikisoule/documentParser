@@ -3,7 +3,6 @@ package gr.documentParser.dao.hibernate;
 import java.util.List;
 
 import gr.documentParser.dao.StatsDao;
-import gr.documentParser.model.Person;
 import gr.documentParser.model.Stats;
 
 import org.hibernate.Query;
@@ -25,6 +24,7 @@ public class HibernateStatsDao  extends AbstractHibernateDao<Stats> implements S
 	}
 	
 	@Override
+	@SuppressWarnings("unchecked")
 	public List<Stats> getAllByType(String type){
 		Query query = getSession().createQuery("SELECT stats FROM Stats stats WHERE type=:type");
 		query.setParameter("type", type);
@@ -47,6 +47,7 @@ public class HibernateStatsDao  extends AbstractHibernateDao<Stats> implements S
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public List<Stats> getAllStats(int maxStats, int offset) {
 		Query query = getSession().createQuery("FROM Stats stats");
 		query.setFirstResult(offset);

@@ -3,7 +3,6 @@ package gr.documentParser.dao.hibernate;
 import java.util.List;
 
 import gr.documentParser.dao.PersonDao;
-import gr.documentParser.model.Interview;
 import gr.documentParser.model.Person;
 
 import org.hibernate.Query;
@@ -41,6 +40,7 @@ public class HibernatePersonDao extends AbstractHibernateDao<Person> implements 
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public List<Person> getByFilename(String filename) {
 		Query query = getSession().createQuery("SELECT persons FROM Person persons WHERE filename=:filename");
 		query.setParameter("filename", filename);
@@ -67,6 +67,7 @@ public class HibernatePersonDao extends AbstractHibernateDao<Person> implements 
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public List<Person> getPersons(int maxPersons, int offset) {
 		Query query = getSession().createQuery("FROM Person persons");
 		query.setFirstResult(offset);

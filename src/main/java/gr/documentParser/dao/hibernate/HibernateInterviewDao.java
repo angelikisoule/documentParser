@@ -102,6 +102,7 @@ public class HibernateInterviewDao extends AbstractHibernateDao<Interview> imple
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public List<Interview> getNullPhones() {
 		Query query = getSession().createQuery("SELECT interviews FROM Interview interviews WHERE phone1=null OR phone2=null");
 		return (List<Interview>) query.list();
