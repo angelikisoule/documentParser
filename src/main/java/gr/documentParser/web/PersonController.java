@@ -2,6 +2,7 @@ package gr.documentParser.web;
 
 import gr.documentParser.service.InterviewService;
 import gr.documentParser.service.PersonService;
+import gr.documentParser.service.StatsService;
 import gr.documentParser.utils.Pager;
 
 import javax.inject.Inject;
@@ -20,6 +21,7 @@ public class PersonController {
 
 	@Inject private PersonService personService;
 	@Inject private InterviewService interviewService;
+	@Inject private StatsService statsService;
 	
 	@RequestMapping(value = "list", method = RequestMethod.GET)
 	public String list(@RequestParam(value = "page", required = false) Integer page, 
@@ -53,6 +55,11 @@ public class PersonController {
 	@ModelAttribute("countPersons")
 	public Long countPersons(){
 		return personService.countPersons();
+	}
+
+	@ModelAttribute("countFiles")
+	public Long countFiles(){
+		return statsService.countStats();
 	}
 
 }
