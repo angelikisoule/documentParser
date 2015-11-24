@@ -518,4 +518,9 @@ public class HomeController {
 	public Long countPersons(){
 		return personService.countPersons();
 	}
+	@ModelAttribute("countFiles")
+	public Long countFiles(){
+		return statsService.countStats();
+	}
+
 }
