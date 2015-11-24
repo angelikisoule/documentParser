@@ -53,7 +53,7 @@
 									<td>${interview.filename}</td>
 									<td><spring:eval expression="interview.dateUpdated" /></td>
 									<td>
-										<a href="<c:url value='/interviews/interview/${interview.id}' />" title="View"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
+										<a href="/interviews/interview/${interview.id}" title="View"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
 									</td>
 								</tr>
 							</c:forEach>
