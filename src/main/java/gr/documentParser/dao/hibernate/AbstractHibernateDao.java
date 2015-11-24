@@ -8,7 +8,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import org.apache.log4j.Logger;
 import org.hibernate.Criteria;
 import org.hibernate.NullPrecedence;
 import org.hibernate.Session;
@@ -24,7 +23,6 @@ import gr.documentParser.dao.AbstractDao;
  */
 public abstract class AbstractHibernateDao<T extends Object> implements AbstractDao<T> {
 
-	private static final Logger logger = Logger.getLogger(AbstractHibernateDao.class);
 	
 	@Inject private SessionFactory sessionFactory;
 	private Class<T> domainClass;
@@ -70,7 +68,7 @@ public abstract class AbstractHibernateDao<T extends Object> implements Abstract
 				method.invoke(t, Calendar.getInstance());
 			}
 			catch(Exception exception) {
-				logger.error(exception);
+				System.out.println(exception);
 			}
 		}
 		getSession().persist(t);
@@ -89,7 +87,7 @@ public abstract class AbstractHibernateDao<T extends Object> implements Abstract
 				method.invoke(t, Calendar.getInstance());
 			}
 			catch(Exception exception) {
-				logger.error(exception);
+				System.out.println(exception);
 			}
 		}		
 		
