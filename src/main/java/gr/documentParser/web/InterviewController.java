@@ -13,15 +13,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import gr.documentParser.service.InterviewService;
 import gr.documentParser.service.PersonService;
+import gr.documentParser.service.QuestionService;
 import gr.documentParser.service.StatsService;
 import gr.documentParser.utils.Pager;
 
-@Controller@RequestMapping(value = "/interviews")
+@Controller
+@RequestMapping(value = "/interviews")
 public class InterviewController {
 
 	@Inject private InterviewService interviewService;
 	@Inject private PersonService personService;
 	@Inject private StatsService statsService;
+	@Inject private QuestionService questionService;
 	
 	@RequestMapping(value = "list", method = RequestMethod.GET)
 	public String list(@RequestParam(value = "page", required = false) Integer page, @RequestParam(value = "size", required = false) Integer size, Model model, HttpServletRequest request) {
@@ -58,5 +61,9 @@ public class InterviewController {
 	public Long countFiles(){
 		return statsService.countStats();
 	}
-
+	
+	@ModelAttribute("countQuestions")
+	public Long countQuestions(){
+		return questionService.countAll();
+	}
 }

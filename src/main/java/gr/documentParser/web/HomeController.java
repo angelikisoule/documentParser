@@ -522,5 +522,9 @@ public class HomeController {
 	public Long countFiles(){
 		return statsService.countStats();
 	}
+	@ModelAttribute("countQuestions")
+	public Long countQuestions(){
+		return questionService.countAll();
+	}
 
 }

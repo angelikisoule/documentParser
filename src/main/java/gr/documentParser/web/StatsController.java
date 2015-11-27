@@ -2,6 +2,7 @@ package gr.documentParser.web;
 
 import gr.documentParser.service.InterviewService;
 import gr.documentParser.service.PersonService;
+import gr.documentParser.service.QuestionService;
 import gr.documentParser.service.StatsService;
 import gr.documentParser.utils.Pager;
 
@@ -21,6 +22,7 @@ public class StatsController {
 	@Inject private StatsService statsService;
 	@Inject private PersonService personService;
 	@Inject private InterviewService interviewService;
+	@Inject private QuestionService questionService;
 	
 	@RequestMapping(value = "list", method = RequestMethod.GET)
 	public String list(@RequestParam(value = "page", required = false) Integer page, 
@@ -63,5 +65,10 @@ public class StatsController {
 	@ModelAttribute("countXls")
 	public Long countXlsFiles(){
 		return statsService.countByType("xls");
+	}
+	
+	@ModelAttribute("countQuestions")
+	public Long countQuestions(){
+		return questionService.countAll();
 	}
 }

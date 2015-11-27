@@ -4,7 +4,8 @@
 		<div class="col-xs-12">
 			<a href="/interviews/list"	class="btn btn-default btn-lg" role="button">List Of Interviews <b>${countInterviews}</b></a>
 			<a href="/persons/list" class="btn btn-default btn-lg" role="button">List Of Persons <b>${countPersons}</b></a> 
-			<a href="/stats/list" class="btn btn-default btn-lg" role="button">List Of Files <b>${countFiles}</b></a> 
+			<a href="/stats/list" class="btn btn-default btn-lg" role="button">List Of Files <b>${countFiles}</b></a>
+			<a href="/questions/list" class="btn btn-default btn-lg" role="button">List Of Questions <b>${countQuestions}</b></a> 
 			<div style="display:none">
 				<a href="/parseTxt" class="btn btn-warning btn-lg" role="button">Parse .txt Files</a> 
 				<a href="/parseXls" class="btn btn-primary btn-lg" role="button">Parse .xls Files</a> 
