@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import gr.documentParser.service.AnswerService;
 import gr.documentParser.service.InterviewService;
 import gr.documentParser.service.PersonService;
 import gr.documentParser.service.QuestionService;
@@ -25,6 +26,7 @@ public class InterviewController {
 	@Inject private PersonService personService;
 	@Inject private StatsService statsService;
 	@Inject private QuestionService questionService;
+	@Inject private AnswerService answerService;
 	
 	@RequestMapping(value = "list", method = RequestMethod.GET)
 	public String list(@RequestParam(value = "page", required = false) Integer page, @RequestParam(value = "size", required = false) Integer size, Model model, HttpServletRequest request) {
@@ -45,6 +47,12 @@ public class InterviewController {
 	public String interview(@PathVariable("id") Long id, Model model) {
 		model.addAttribute("interview", interviewService.getInterview(id));
 		return "interviews/view";
+	}
+	
+	@RequestMapping(value = "interview/q60", method = RequestMethod.GET)
+	public String q60(Model model){
+		model.addAttribute("q60", answerService.getRanking());
+		return "interviews/q60";
 	}
 	
 	@ModelAttribute("countInterviews")

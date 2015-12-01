@@ -108,4 +108,7 @@ public class HibernateInterviewDao extends AbstractHibernateDao<Interview> imple
 		return (List<Interview>) query.list();
 	}
 	
+//	public List<Interview> getRanking(String radio){
+//		Query query = getSession().createQuery("SELECT interviews FROM Interview interview WHERE (answers.question.questionCode=:radio");
+//	}
 }

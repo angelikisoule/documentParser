@@ -29,6 +29,7 @@
 								<th>Phone1</th>
 								<th>Phone2</th>
 								<th>Filename</th>
+								<th>Q60</th>
 								<th>Date Updated</th>
 								<th>&nbsp;</th>
 							</tr>
@@ -51,6 +52,16 @@
 										</c:choose>									
 									</td>
 									<td>${interview.filename}</td>
+									<td>
+										<c:forEach var="answer" items="${interview.answers}">
+											<c:if test="${answer.question.questionCode eq 'Q60'}">
+												<c:forEach var="answerToken" items="${answer.answerTokens}">
+													${answerToken.subQuestion} - ${answerToken.id - answer.answerTokens[0].id +1}
+													<br/>
+												</c:forEach>
+											</c:if>
+										</c:forEach>	
+									</td>
 									<td><spring:eval expression="interview.dateUpdated" /></td>
 									<td>
 										<a href="/interviews/interview/${interview.id}" title="View"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
